@@ -18,6 +18,9 @@ export async function GET(request: Request) {
           lead: true,
         },
       });
+      if (!conversation || conversation.organizationId !== tenant.organizationId) {
+        return NextResponse.json({ error: 'Conversation not found in active dealership organization' }, { status: 404 });
+      }
       return NextResponse.json(conversation);
     }
 

@@ -13,7 +13,7 @@ import {
   Car,
   TrendingUp,
   FileText,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

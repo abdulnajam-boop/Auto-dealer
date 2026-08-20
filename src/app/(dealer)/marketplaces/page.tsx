@@ -13,7 +13,7 @@ import {
   RefreshCw,
   Send,
   Sparkles,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

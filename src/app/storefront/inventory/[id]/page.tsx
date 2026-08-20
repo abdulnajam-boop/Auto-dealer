@@ -15,7 +15,7 @@ import {
   Phone,
   MessageSquare,
   Sparkles,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

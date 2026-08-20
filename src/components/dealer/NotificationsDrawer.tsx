@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { X, Bell, CheckCircle2, AlertTriangle, Info, ArrowRight } from 'lucide-react';
+import { X, Bell, CheckCircle2, AlertTriangle, Info, ArrowRight } from '@/components/icons';
 import { formatDate } from '@/lib/utils';
 
 interface NotificationItem {

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -32,14 +33,17 @@ async function main() {
     },
   });
 
-  // 2. Create Users & Staff Members
+  // 2. Create Users & Staff Members with secure bcrypt passwordHash (Default password: dealer123)
+  const defaultPasswordHash = bcrypt.hashSync('dealer123', 10);
+  
   const userMarcus = await prisma.user.upsert({
     where: { email: 'marcus@apexautogallery.com' },
-    update: {},
+    update: { passwordHash: defaultPasswordHash },
     create: {
       id: 'user_marcus_vance',
       name: 'Marcus Vance',
       email: 'marcus@apexautogallery.com',
+      passwordHash: defaultPasswordHash,
       phone: '(512) 555-0101',
       avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
     },
@@ -47,11 +51,12 @@ async function main() {
 
   const userSarah = await prisma.user.upsert({
     where: { email: 'sarah@apexautogallery.com' },
-    update: {},
+    update: { passwordHash: defaultPasswordHash },
     create: {
       id: 'user_sarah_chen',
       name: 'Sarah Chen',
       email: 'sarah@apexautogallery.com',
+      passwordHash: defaultPasswordHash,
       phone: '(512) 555-0102',
       avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
     },
@@ -59,32 +64,103 @@ async function main() {
 
   const userDavid = await prisma.user.upsert({
     where: { email: 'david@apexautogallery.com' },
-    update: {},
+    update: { passwordHash: defaultPasswordHash },
     create: {
       id: 'user_david_miller',
       name: 'David Miller',
       email: 'david@apexautogallery.com',
+      passwordHash: defaultPasswordHash,
       phone: '(512) 555-0103',
       avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
     },
   });
 
+  const userCarlos = await prisma.user.upsert({
+    where: { email: 'carlos@apexautogallery.com' },
+    update: { passwordHash: defaultPasswordHash },
+    create: {
+      id: 'user_carlos_mendez',
+      name: 'Carlos Mendez',
+      email: 'carlos@apexautogallery.com',
+      passwordHash: defaultPasswordHash,
+      phone: '(512) 555-0104',
+      avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    },
+  });
+
+  // Assign memberships in Apex Auto Gallery
   await prisma.organizationMember.upsert({
     where: { organizationId_userId: { organizationId: org.id, userId: userMarcus.id } },
-    update: {},
+    update: { role: 'OWNER' },
     create: { organizationId: org.id, userId: userMarcus.id, role: 'OWNER' },
   });
 
   await prisma.organizationMember.upsert({
     where: { organizationId_userId: { organizationId: org.id, userId: userSarah.id } },
-    update: {},
-    create: { organizationId: org.id, userId: userSarah.id, role: 'MANAGER' },
+    update: { role: 'SALES' },
+    create: { organizationId: org.id, userId: userSarah.id, role: 'SALES' },
   });
 
   await prisma.organizationMember.upsert({
     where: { organizationId_userId: { organizationId: org.id, userId: userDavid.id } },
+    update: { role: 'FINANCE' },
+    create: { organizationId: org.id, userId: userDavid.id, role: 'FINANCE' },
+  });
+
+  await prisma.organizationMember.upsert({
+    where: { organizationId_userId: { organizationId: org.id, userId: userCarlos.id } },
+    update: { role: 'INVENTORY' },
+    create: { organizationId: org.id, userId: userCarlos.id, role: 'INVENTORY' },
+  });
+
+  // 2b. Create Second Tenant Organization (Metro City Imports) for Tenant Isolation Testing
+  const orgMetro = await prisma.organization.upsert({
+    where: { slug: 'metro-city-imports' },
     update: {},
-    create: { organizationId: org.id, userId: userDavid.id, role: 'SALES' },
+    create: {
+      id: 'org_metro_imports',
+      name: 'Metro City Imports',
+      slug: 'metro-city-imports',
+      phone: '(214) 555-0899',
+      email: 'sales@metrocityimports.com',
+      address: '7800 Stemmons Freeway',
+      city: 'Dallas',
+      state: 'TX',
+      zip: '75247',
+      website: 'https://metrocityimports.com',
+      settingsJson: JSON.stringify({
+        defaultDocFee: 395,
+        stateTaxRate: 6.25,
+        defaultTargetMarginPercent: 12,
+        autoPublishStorefront: true,
+        aiSalesAgentEnabled: true,
+      }),
+    },
+  });
+
+  const userElena = await prisma.user.upsert({
+    where: { email: 'elena@metrocityimports.com' },
+    update: { passwordHash: defaultPasswordHash },
+    create: {
+      id: 'user_elena_rostova',
+      name: 'Elena Rostova',
+      email: 'elena@metrocityimports.com',
+      passwordHash: defaultPasswordHash,
+      phone: '(214) 555-0801',
+    },
+  });
+
+  await prisma.organizationMember.upsert({
+    where: { organizationId_userId: { organizationId: orgMetro.id, userId: userElena.id } },
+    update: { role: 'OWNER' },
+    create: { organizationId: orgMetro.id, userId: userElena.id, role: 'OWNER' },
+  });
+
+  // Marcus is also a VIEWER member of Metro City Imports (Multi-org test)
+  await prisma.organizationMember.upsert({
+    where: { organizationId_userId: { organizationId: orgMetro.id, userId: userMarcus.id } },
+    update: { role: 'VIEWER' },
+    create: { organizationId: orgMetro.id, userId: userMarcus.id, role: 'VIEWER' },
   });
 
   // 3. Locations

@@ -13,7 +13,7 @@ import {
   Calendar,
   AlertTriangle,
   ArrowRight,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

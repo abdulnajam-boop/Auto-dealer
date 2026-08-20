@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Phone, MapPin, Clock, Car, ShieldCheck } from 'lucide-react';
+import { Phone, MapPin, Clock, Car, ShieldCheck } from '@/components/icons';
 
 export function StorefrontHeader() {
   const pathname = usePathname();

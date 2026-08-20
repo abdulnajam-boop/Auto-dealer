@@ -12,7 +12,7 @@ import {
   Car,
   TrendingUp,
   DollarSign,
-} from 'lucide-react';
+} from '@/components/icons';
 
 interface ChatMessage {
   role: 'user' | 'assistant';

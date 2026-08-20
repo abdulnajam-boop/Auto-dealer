@@ -11,7 +11,7 @@ import {
   TrendingDown,
   Receipt,
   ArrowRight,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

@@ -16,7 +16,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Gavel,
-} from 'lucide-react';
+} from '@/components/icons';
 import { formatCurrency, formatNumber, formatDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/dealer/StatusBadge';
 

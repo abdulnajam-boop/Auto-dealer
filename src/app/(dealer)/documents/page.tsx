@@ -8,7 +8,7 @@ import {
   Download,
   ShieldCheck,
   Search,
-} from 'lucide-react';
+} from '@/components/icons';
 import { formatDate } from '@/lib/utils';
 
 interface DealDoc {

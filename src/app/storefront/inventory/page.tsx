@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getTenantContext } from '@/lib/tenant';
 import { formatCurrency, formatNumber, calculateMonthlyPayment } from '@/lib/utils';
-import { Car, Search, Filter, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Car, Search, Filter, ArrowRight, ShieldCheck } from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

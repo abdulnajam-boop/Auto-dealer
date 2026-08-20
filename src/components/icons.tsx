@@ -1,0 +1,78 @@
+'use client';
+
+import React from 'react';
+import * as LucideIcons from 'lucide-react';
+
+export type IconProps = React.SVGProps<SVGSVGElement> & {
+  size?: number | string;
+  className?: string;
+};
+
+export type IconComponent = React.ComponentType<IconProps>;
+
+const icons = LucideIcons as Record<string, any>;
+
+export const Car: IconComponent = icons.Car;
+export const Search: IconComponent = icons.Search;
+export const ArrowRight: IconComponent = icons.ArrowRight;
+export const ArrowLeft: IconComponent = icons.ArrowLeft;
+export const ArrowUpRight: IconComponent = icons.ArrowUpRight;
+export const ShieldCheck: IconComponent = icons.ShieldCheck;
+export const ShieldAlert: IconComponent = icons.ShieldAlert;
+export const Award: IconComponent = icons.Award;
+export const Sparkles: IconComponent = icons.Sparkles;
+export const Zap: IconComponent = icons.Zap;
+export const CheckCircle2: IconComponent = icons.CheckCircle2;
+export const Check: IconComponent = icons.Check;
+export const Calendar: IconComponent = icons.Calendar;
+export const DollarSign: IconComponent = icons.DollarSign;
+export const TrendingUp: IconComponent = icons.TrendingUp;
+export const TrendingDown: IconComponent = icons.TrendingDown;
+export const Clock: IconComponent = icons.Clock;
+export const Globe: IconComponent = icons.Globe;
+export const Users: IconComponent = icons.Users;
+export const User: IconComponent = icons.User;
+export const UserCheck: IconComponent = icons.UserCheck;
+export const MessageSquare: IconComponent = icons.MessageSquare;
+export const FileCheck2: IconComponent = icons.FileCheck2;
+export const FileText: IconComponent = icons.FileText;
+export const Plus: IconComponent = icons.Plus;
+export const AlertTriangle: IconComponent = icons.AlertTriangle;
+export const AlertCircle: IconComponent = icons.AlertCircle;
+export const Info: IconComponent = icons.Info;
+export const Target: IconComponent = icons.Target;
+export const Gavel: IconComponent = icons.Gavel;
+export const Filter: IconComponent = icons.Filter;
+export const Tag: IconComponent = icons.Tag;
+export const ExternalLink: IconComponent = icons.ExternalLink;
+export const Share2: IconComponent = icons.Share2;
+export const Edit3: IconComponent = icons.Edit3;
+export const RefreshCw: IconComponent = icons.RefreshCw;
+export const Send: IconComponent = icons.Send;
+export const Loader2: IconComponent = icons.Loader2;
+export const Phone: IconComponent = icons.Phone;
+export const Mail: IconComponent = icons.Mail;
+export const Lock: IconComponent = icons.Lock;
+export const Receipt: IconComponent = icons.Receipt;
+export const PieChart: IconComponent = icons.PieChart;
+export const BarChart3: IconComponent = icons.BarChart3;
+export const Bot: IconComponent = icons.Bot;
+export const Printer: IconComponent = icons.Printer;
+export const Download: IconComponent = icons.Download;
+export const Play: IconComponent = icons.Play;
+export const Settings: IconComponent = icons.Settings;
+export const Key: IconComponent = icons.Key;
+export const Building: IconComponent = icons.Building;
+export const Building2: IconComponent = icons.Building2;
+export const Save: IconComponent = icons.Save;
+export const HeartHandshake: IconComponent = icons.HeartHandshake;
+export const LayoutDashboard: IconComponent = icons.LayoutDashboard;
+export const MapPin: IconComponent = icons.MapPin;
+export const Copy: IconComponent = icons.Copy;
+export const Bell: IconComponent = icons.Bell;
+export const ChevronRight: IconComponent = icons.ChevronRight;
+export const ChevronDown: IconComponent = icons.ChevronDown;
+export const LogOut: IconComponent = icons.LogOut;
+export const X: IconComponent = icons.X;
+
+export default icons;

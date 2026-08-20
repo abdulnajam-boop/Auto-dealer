@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Award, HeartHandshake, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Award, HeartHandshake, CheckCircle2 } from '@/components/icons';
 
 export default function AboutPage() {
   return (

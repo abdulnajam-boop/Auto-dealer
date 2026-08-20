@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Zap,
   Target,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

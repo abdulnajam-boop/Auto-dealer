@@ -11,7 +11,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Settings,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

@@ -18,7 +18,7 @@ import {
   FileCheck2,
   ExternalLink,
   MessageSquare,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

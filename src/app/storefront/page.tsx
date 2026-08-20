@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Calendar,
   DollarSign,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

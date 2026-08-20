@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { X, Bot, Send, Sparkles, ArrowRight, Loader2, RefreshCw } from 'lucide-react';
+import { X, Bot, Send, Sparkles, ArrowRight, Loader2, RefreshCw } from '@/components/icons';
 
 interface AiAssistantDrawerProps {
   isOpen: boolean;

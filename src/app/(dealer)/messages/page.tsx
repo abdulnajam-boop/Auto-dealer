@@ -17,7 +17,7 @@ import {
   Loader2,
   ShieldAlert,
   CheckCircle2,
-} from 'lucide-react';
+} from '@/components/icons';
 import { formatCurrency, formatNumber, formatDateTime } from '@/lib/utils';
 import { StatusBadge } from '@/components/dealer/StatusBadge';
 

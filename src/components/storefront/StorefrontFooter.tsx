@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Phone, MapPin, Mail, ShieldCheck, Award, HeartHandshake } from 'lucide-react';
+import { Phone, MapPin, Mail, ShieldCheck, Award, HeartHandshake } from '@/components/icons';
 
 export function StorefrontFooter() {
   return (

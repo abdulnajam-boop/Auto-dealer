@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       include: { expenses: true },
     });
 
-    if (!vehicle) {
-      return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 });
+    if (!vehicle || vehicle.organizationId !== tenant.organizationId) {
+      return NextResponse.json({ error: 'Vehicle not found in active dealership organization' }, { status: 404 });
     }
 
     const copy = await generateVehicleListing({

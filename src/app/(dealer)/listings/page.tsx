@@ -13,7 +13,7 @@ import {
   Send,
   Loader2,
   Car,
-} from 'lucide-react';
+} from '@/components/icons';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { StatusBadge } from '@/components/dealer/StatusBadge';
 

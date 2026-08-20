@@ -12,7 +12,7 @@ import {
   Save,
   Globe,
   CheckCircle2,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

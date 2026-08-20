@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Zap, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Zap, ShieldCheck, CheckCircle2, ArrowRight } from '@/components/icons';
 
 export default function FinancingPage() {
   const [submitted, setSubmitted] = useState(false);

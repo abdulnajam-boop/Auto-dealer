@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageSquare, X, Send, Bot, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, Loader2, Sparkles, CheckCircle2 } from '@/components/icons';
 
 interface StorefrontLiveChatProps {
   vehicleId?: string;

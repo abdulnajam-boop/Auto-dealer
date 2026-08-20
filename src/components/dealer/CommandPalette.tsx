@@ -18,7 +18,7 @@ import {
   BarChart3,
   X,
   ArrowRight,
-} from 'lucide-react';
+} from '@/components/icons';
 
 interface CommandPaletteProps {
   isOpen: boolean;

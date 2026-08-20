@@ -1,5 +1,4 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
@@ -7,7 +6,7 @@ interface StatCardProps {
   change?: string;
   isPositive?: boolean;
   subtitle?: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   iconColor?: string;
 }
 

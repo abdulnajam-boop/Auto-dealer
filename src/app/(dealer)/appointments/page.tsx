@@ -14,7 +14,7 @@ import {
   ArrowRight,
   Phone,
   Mail,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 

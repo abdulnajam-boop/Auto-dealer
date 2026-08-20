@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DollarSign, ShieldCheck, CheckCircle2, ArrowRight } from 'lucide-react';
+import { DollarSign, ShieldCheck, CheckCircle2, ArrowRight } from '@/components/icons';
 
 export default function TradeInPage() {
   const [submitted, setSubmitted] = useState(false);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, MapPin, Mail, Clock } from 'lucide-react';
+import { Phone, MapPin, Mail, Clock } from '@/components/icons';
 
 export default function ContactPage() {
   return (

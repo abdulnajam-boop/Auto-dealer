@@ -12,7 +12,7 @@ import {
   Sparkles,
   ArrowUpRight,
   ShieldCheck,
-} from 'lucide-react';
+} from '@/components/icons';
 import { StatCard } from '@/components/dealer/StatCard';
 
 export const dynamic = 'force-dynamic';

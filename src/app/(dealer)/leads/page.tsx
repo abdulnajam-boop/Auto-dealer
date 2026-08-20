@@ -15,7 +15,7 @@ import {
   Mail,
   ArrowRight,
   TrendingUp,
-} from 'lucide-react';
+} from '@/components/icons';
 
 export const dynamic = 'force-dynamic';
 
