@@ -34,9 +34,9 @@ interface UserProfile {
 }
 
 interface OrgMembership {
-  id: string;
-  name: string;
-  slug: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug: string;
   role: string;
 }
 
@@ -49,7 +49,7 @@ export function Header({
   const router = useRouter();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [currentOrg, setCurrentOrg] = useState<OrgMembership | null>(null);
+  const [currentOrg, setCurrentOrg] = useState<{ id: string; name: string; slug: string; role: string } | null>(null);
   const [allOrgs, setAllOrgs] = useState<OrgMembership[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -196,7 +196,7 @@ export function Header({
 
           {/* Dropdown Menu */}
           {userDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-from-top-2 duration-150">
               {/* User info banner */}
               <div className="px-3 py-2.5 border-b border-slate-800">
                 <div className="text-xs font-bold text-white truncate">{user?.name || 'Marcus Vance'}</div>
@@ -220,11 +220,13 @@ export function Header({
                   </div>
                   <div className="space-y-0.5">
                     {allOrgs.map((org) => {
-                      const isCurrent = org.id === currentOrg?.id;
+                      const orgId = org.organizationId;
+                      const orgName = org.organizationName;
+                      const isCurrent = orgId === currentOrg?.id;
                       return (
                         <button
-                          key={org.id}
-                          onClick={() => handleSwitchOrg(org.id)}
+                          key={orgId}
+                          onClick={() => handleSwitchOrg(orgId)}
                           className={`w-full text-left px-3 py-1.5 rounded-lg text-xs flex items-center justify-between transition-colors ${
                             isCurrent
                               ? 'bg-emerald-500/15 text-emerald-300 font-semibold'
@@ -232,7 +234,7 @@ export function Header({
                           }`}
                         >
                           <div className="truncate">
-                            <div>{org.name}</div>
+                            <div>{orgName}</div>
                             <div className="text-[10px] text-slate-400 font-mono">{org.role}</div>
                           </div>
                           {isCurrent && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
