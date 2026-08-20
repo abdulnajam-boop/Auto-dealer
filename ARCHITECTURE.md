@@ -1,67 +1,83 @@
 # DealerOS Architecture Design Document
 
 ## 1. System Overview
-DealerOS is an autonomous, AI-augmented Dealer Management & Operating System (DMS / Dealer OS) engineered specifically for independent and franchise automotive dealerships. It unifies vehicle sourcing, valuation intelligence, inventory intake, reconditioning cost accounting, multi-channel AI marketing, autonomous lead negotiation, F&I deal desking, and executive business analytics into a single multi-tenant platform.
+DealerOS is an autonomous, AI-augmented Dealer Operating System & Consumer Automotive Platform engineered for independent and franchise dealerships, as well as retail car shoppers.
 
 ```
-+-----------------------------------------------------------------------------------+
-|                                 CLIENT SURFACES                                   |
-|   +--------------------------+  +--------------------+  +---------------------+   |
-|   |   Dealer Web Workspace   |  |  Dealer Mobile/PWA |  |  Public Storefront  |   |
-|   |     (Next.js App)        |  |    (Responsive)    |  |    (/storefront)     |   |
-|   +-------------+------------+  +---------+----------+  +----------+----------+   |
-+-----------------|-------------------------|------------------------|--------------+
-                  +-------------------------+------------------------+
-                                            |
-+-------------------------------------------v---------------------------------------+
-|                               API & APPLICATION LAYER                             |
-|  +-----------------------------------------------------------------------------+  |
-|  | Multi-Tenant Auth Guard & Context Resolver (Org, Role, Location Isolation)  |  |
-|  +-----------------------------------------------------------------------------+  |
-|  | Core Domain Services:                                                       |  |
-|  | - Inventory & Reconditioning Service  - Valuation & Vehicle Intelligence   |  |
-|  | - AI Listing Studio & Copywriter      - Autonomous AI Sales Agent Engine    |  |
-|  | - Multi-Marketplace Adapter Hub       - CRM & Lead Pipeline Service         |  |
-|  | - F&I Deal Desk & Documents           - Event Automation & Trigger Engine   |  |
-|  | - Dealer Executive AI Assistant       - Analytics & Financial Aggregator    |  |
-|  +-----------------------------------------------------------------------------+  |
-+-------------------------------------------+---------------------------------------+
-                                            |
-+-------------------------------------------v---------------------------------------+
-|                               DATA & INTEGRATION LAYER                            |
-|  +---------------------+  +----------------------+  +--------------------------+  |
-|  |  Relational DB      |  |  AI Provider Engine  |  |  Marketplace Adapters    |  |
-|  |  (Prisma / SQLite / |  |  (Gemini API /       |  |  - Storefront (Direct)   |  |
-|  |   PostgreSQL)       |  |   Heuristic Fallback)|  |  - FB / Craigslist / eBay|  |
-|  +---------------------+  +----------------------+  +--------------------------+  |
-|  |  Audit & AI Ledger  |  |  NHTSA VIN Decoder   |  |  Event Bus / Webhooks    |  |
-|  +---------------------+  +----------------------+  +--------------------------+  |
-+-----------------------------------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------+
+|                                                  CLIENT SURFACES                                                   |
+|  +--------------------+  +----------------------+  +--------------------+  +---------------------+  +------------+ |
+|  | Corporate SaaS Site|  | DealerOS Management  |  | Branded Showroom   |  | Consumer Marketplace|  | Lease Deals| |
+|  | (dealeros.com / /) |  | (/d/[slug]/dashboard)|  | (/dealer/[slug])   |  | (/cars, /cars/[id]) |  |(/lease-deals)|
+|  +---------+----------+  +----------+-----------+  +---------+----------+  +----------+----------+  +-----+------+ |
++------------|------------------------|------------------------|------------------------|-------------------|--------+
+             +------------------------+------------------------+------------------------+-------------------+
+                                                               |
++--------------------------------------------------------------v-----------------------------------------------------+
+|                                           API & SECURITY GATEWAY                                                   |
+|  +--------------------------------------------------------------------------------------------------------------+  |
+|  | - Next.js Edge Middleware & JWT Session Guard (HTTP-only signed cookies via jose)                             |  |
+|  | - Path-Based & Subdomain Multi-Tenant Context Resolver (Organization, Membership, and 6-Role RBAC Matrix)    |  |
+|  | - First-Party Consumer Intent & Lead Capture Engine (Explicit SMS/Email Consent Logging)                    |  |
+|  +--------------------------------------------------------------------------------------------------------------+  |
+|  | Core Domain Services:                                                                                        |  |
+|  | - Vehicle Intelligence & Arbitrage Engine      - Autonomous AI Sales Agent Engine (Bounded Negotiations)     |  |
+|  | - Omnichannel Master Listing Studio & Delist   - Mathematical Lease Calculator & Explainable Deal Scorer     |  |
+|  | - Real-Time Auction Ingestion & Run Lists      - CRM, Unified Inbox & Digital F&I Desking                    |  |
+|  | - Team & User Management with RBAC Guards      - Provider Cost Metering & Caching Layer                      |  |
+|  +--------------------------------------------------------------------------------------------------------------+  |
++--------------------------------------------------------------+-----------------------------------------------------+
+                                                               |
++--------------------------------------------------------------v-----------------------------------------------------+
+|                                            DATA & INTEGRATION LAYER                                                |
+|  +---------------------------+  +--------------------------+  +-------------------------------------------------+  |
+|  | Relational Database       |  | Automotive Data Feeds    |  | Marketplace & Communication Adapters            |  |
+|  | - PostgreSQL (Prod)      |  | - NHTSA VPIC (Live API)  |  | - Branded Storefront (Direct DB)                |  |
+|  | - SQLite (Dev / Test)     |  | - VinAudit (NMVTIS Comps)|  | - Meta Automotive Catalog (Feed / Manual Kit)   |  |
+|  | - Prisma ORM Model Layer  |  | - CARFAX / AutoCheck     |  | - Autotrader / Cars.com (Syndication Feed)      |  |
+|  | - Immutable Audit Logs    |  | - Manheim / ACV Auctions |  | - Twilio 2-Way SMS & Live Web Chat              |  |
+|  +---------------------------+  +--------------------------+  +-------------------------------------------------+  |
++--------------------------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Multi-Tenancy & Security Architecture
-1. **Organization-Scoped Tenancy**: Every operational table (`vehicles`, `leads`, `deals`, `expenses`, `conversations`, `marketplace_accounts`, etc.) enforces an `organizationId` foreign key and compound indexes.
-2. **Context Resolution**: Server requests dynamically resolve organization membership and user permissions (`Owner`, `Manager`, `Sales`, `Inventory`, `Finance`, `Viewer`).
-3. **AI Action Ledger & Audit Guard**: Any high-stakes action initiated by an AI agent (e.g. publishing listings, price changes, sending counter-offers, delisting vehicles, updating deal documents) is immutably recorded in `ai_actions` and `audit_logs` with timestamps, model IDs, inputs, calculated limits, and human approval status.
+## 2. Multi-Tenancy & Path-Based Routing Architecture
+1. **Path-Based Tenancy**:
+   - `/d/[dealerSlug]/dashboard` -> Dealership operating workspace.
+   - `/dealer/[dealerSlug]` -> Public branded showroom powered by DealerOS.
+   - Domain architecture supports future subdomains (`[dealerSlug].dealeros.com`) and custom CNAME domains (`cars.[dealership].com`) without changing core business logic.
+2. **Strict Server-Side Isolation**: Every database query executes with `where: { organizationId: tenant.organizationId }`. Users can only access dealerships where they have an active `OrganizationMember` record.
+3. **6-Role Granular RBAC**:
+   - `OWNER`: Full administrative access, billing, team management, and pricing control.
+   - `ADMIN`: Full access and user management.
+   - `MANAGER`: Desking approvals, inventory intake, and lead assignment.
+   - `SALES`: CRM, active leads, web chat, and listing copy creation.
+   - `INVENTORY`: Vehicle acquisitions, recon ledger, and auction watchlist.
+   - `FINANCE`: F&I contracts, loans, buyer orders, and bill of sale documents.
+   - `VIEWER`: Read-only reporting.
 
 ---
 
-## 3. Autonomous AI Pipeline
-- **Vehicle Intelligence Engine**: Evaluates VIN, condition, mileage, auction fees, and estimated repairs to produce market values, target bids, expected gross profits, days-to-sell, and an Opportunity Score (0-100) with BUY/PASS recommendations.
-- **AI Listing Studio**: Ingests verified vehicle specifications and reconditioning history to generate multichannel advertising copy (SEO titles, marketplace descriptions, social media captions with tags) without inventing unverified features.
-- **AI Sales Agent**: Operates across SMS, Web Chat, WhatsApp, and Marketplace channels. Respects Dealer-configured pricing thresholds:
-  $$\text{Asking Price} \ge \text{Negotiated Price} \ge \text{Absolute Minimum Price}$$
-  Automatically answers inventory queries, qualifies trade-in and financing readiness, books test drives, and escalates out-of-bounds buyer requests to human sales managers.
-- **Dealer Executive Assistant**: Provides conversational querying over dealership databases via function-calling tools (inventory aging, gross profit per source, lead conversion, auction buy lists).
+## 3. Mathematical Rule Engines & Data Provenance
+
+### 3.1 Vehicle Opportunity & Arbitrage Engine
+Calculates net acquisition viability across auctions, dealer networks, and private listings:
+$$\text{Expected Margin} = \text{Estimated Market Value} - (\text{Acquisition Price} + \text{Transport} + \text{Reconditioning} + \text{Fees})$$
+$$\text{Opportunity Score} = w_1 \cdot \text{Margin} + w_2 \cdot \text{Demand} + w_3 \cdot \text{DaysToSell} + w_4 \cdot \text{ConditionRisk} + w_5 \cdot \text{TitleRisk}$$
+
+Every numerical calculation tags its provenance: `LIVE`, `PROVIDER_DATA`, `CALCULATED`, `DEALER_ENTERED`, `ESTIMATED`, or `SIMULATED`.
+
+### 3.2 Lease Calculator & Explainable Deal Score
+$$\text{Residual Value} = \text{MSRP} \times \text{Residual Percentage}$$
+$$\text{Depreciation Portion} = \frac{\text{Adjusted Cap Cost} - \text{Residual Value}}{\text{Term}}$$
+$$\text{Finance Charge} = (\text{Adjusted Cap Cost} + \text{Residual Value}) \times \text{Money Factor}$$
+$$\text{Base Payment} = \text{Depreciation Portion} + \text{Finance Charge}$$
+$$\text{Effective Monthly Cost} = \frac{\text{Monthly Payment} \times \text{Term} + \text{Due at Signing} + \text{Unavoidable Fees}}{\text{Term}}$$
 
 ---
 
-## 4. Event Automation Engine
-A reactive event engine triggers standard dealership operations:
-- `vehicle.ready` -> Trigger AI Listing draft generation.
-- `listing.approved` -> Broadcast to authorized marketplace adapters.
-- `message.received` -> Ingest lead into CRM and trigger AI Sales Agent response.
-- `vehicle.sold` -> Trigger automatic removal of active marketplace listings and compute realized gross profit.
-- `inventory.aged` -> Generate price drop recommendation notification when age > 45 days.
+## 4. Consumer Intent Engine & Lead Capture
+1. **Guest Lead Capture**: Shoppers submit inquiries without forced upfront account creation.
+2. **Explicit Consent Ledger**: Captures `MARKETING_SMS`, `MARKETING_EMAIL`, and `TERMS_OF_SERVICE` consent with IP addresses and user agents.
+3. **First-Party Intent Events**: Tracks behavioral milestones (`vehicle.viewed`, `vehicle.saved`, `test_drive.requested`, `offer.submitted`) to calculate real-time lead urgency in the dealership CRM.

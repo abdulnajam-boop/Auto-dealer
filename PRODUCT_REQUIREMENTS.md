@@ -1,75 +1,67 @@
 # DealerOS Product Requirements Document (PRD)
 
-## 1. Product Vision
-DealerOS is the all-in-one operating system for independent used-car dealerships. It automates high-friction workflows across inventory sourcing, valuation, listing syndication, buyer negotiation, customer relationship management, deal financing, and post-sale delisting.
+## 1. Product Vision & Architecture
+DealerOS is the comprehensive automotive retail operating system serving both **B2B Dealerships** (operating platform, inventory management, auction sourcing, CRM, F&I desking, AI sales autonomy) and **B2C Vehicle Shoppers** (consumer marketplace, lease deal discovery, direct showroom scheduling, transparent out-the-door pricing).
 
-## 2. Core Workflows & Specifications
+### Four Core Platform Experiences:
+1. **DealerOS Corporate Website** (`/`, `/features`, `/pricing`, `/integrations`, `/demo`, `/security`): SaaS marketing website showcasing value to dealership owners.
+2. **Dealership Management SaaS** (`/d/[dealerSlug]/dashboard`, `/inventory`, `/opportunities`, `/deals`, `/crm`, `/settings`): High-turn internal operating system with strict multi-tenant isolation and 6-role RBAC.
+3. **Branded Dealership Showrooms** (`/dealer/[dealerSlug]`): White-labeled public website powered by DealerOS with dealer branding, inventory, and scheduling.
+4. **Consumer Vehicle & Lease Marketplace** (`/cars`, `/cars/[id]`, `/lease-deals`): Nationwide shopper discovery engine for buying and leasing vehicles with transparent out-the-door pricing and explainable Deal Scores.
 
-### 2.1 Vehicle Sourcing & Opportunity Intelligence
-- **Input Parameters**: VIN, Year, Make, Model, Trim, Mileage, Condition, Sourcing Channel (Manheim, ACV Auctions, Trade-in, Private Party, Copart), Current Bid, Estimated Repair, Transportation & Fees.
-- **Valuation Analysis**: Computes Estimated Market Value, Wholesale Target Acquisition, Max Recommended Bid, Expected Gross Profit, ROI, Local Demand Index, Days-to-Sell, and Opportunity Score (0–100).
-- **Decision Bands**:
-  - Score >= 80: `STRONG BUY`
-  - Score >= 65: `BUY`
-  - Score >= 50: `WATCH`
-  - Score < 50: `PASS`
+---
 
-### 2.2 Inventory Intake & Cost Accounting
-- **Vehicle Lifecycle**: `Opportunity` → `Purchased` → `In Transit` → `Reconditioning` → `Ready` → `Listed` → `Pending` → `Sold` → `Wholesale`.
-- **Granular Expense Ledger**: Purchase price, auction buy fees, logistics/shipping, mechanical repairs, body shop/paint, detailing, parts, inspection, and lot pack fee.
-- **Cost Basis & Margin**: Real-time computation of `Total Cost Basis = Sum(Expenses)`. Dynamic calculation of Gross Profit on target and final sold prices.
+## 2. Core Modules & Specifications
 
-### 2.3 AI Listing Studio
-- **Multi-Format Content Generation**:
-  - Title & One-Line Hook
-  - Paragraph Narrative / Storytelling Description
-  - Bulleted Feature Highlights & Option Codes
-  - Marketplace-Optimized Copy (FB Marketplace, Craigslist BBCode)
-  - Social Media Copy with Trending Automotive Hashtags
-  - SEO Meta Title & Meta Description
-- **Strict Grounding Rule**: The generator strictly references VIN specs, trim level, packages, and recorded condition. No unverified options or phantom features are hallucinated.
+### 2.1 Corporate SaaS Website (`/`, `/features`, `/pricing`, `/demo`, `/integrations`)
+- **Homepage Messaging**: "One platform to buy, manage, market and sell vehicles."
+- **Primary CTAs**: START FREE TRIAL (`/register`), BOOK DEMO (`/demo`), SIGN IN (`/login`).
+- **Pillars Covered**: Autonomous AI Sales Agent, Cross-Dealer Arbitrage Engine, Omnichannel Listing Studio, Auction Center, Lease Deal Discovery, F&I Desking, and Unified Inbox.
+- **Pricing Plans**: Starter ($249/mo), Professional ($499/mo), Enterprise ($1,299/mo) with 20% annual discount.
 
-### 2.4 Marketplace Hub & Adapter Architecture
-- **Adapter Interface**:
-  - `validateVehicle(vehicle)`
-  - `publish(vehicle, listing)`
-  - `update(vehicle, listing)`
-  - `remove(vehicle)`
-  - `getStatus(vehicle)`
-  - `syncMessages()`
-- **Supported Channels**:
-  - **Dealer Storefront**: Real-time synchronous database publishing.
-  - **Facebook Marketplace**: Feed export / 1-click clipboard asset kit.
-  - **Craigslist**: Formatted HTML/BBCode ready for immediate posting.
-  - **eBay Motors / Autotrader / Cars.com / CarGurus**: Standardized feed & API adapter simulator.
-- **Status Lifecycle**: `Draft` → `Pending` → `Live` → `Failed` → `Expired` → `Removed`.
+### 2.2 Dealership Onboarding & Path-Based Tenancy
+- **Self-Service Signup**: Collects dealership name, owner name, email, phone, physical lot address, and preferred dealership slug (`/dealer/[slug]` and `/d/[slug]/dashboard`).
+- **Automatic Provisioning**: Organization tenant, owner account, default location, F&I defaults ($499 doc fee, 6.25% state tax), default branding, and sample inventory.
+- **Path-Based Tenancy**: Strict database query isolation; prevents cross-dealer data leakage.
 
-### 2.5 Unified Buyer Inbox & Autonomous AI Sales Agent
-- **Communication Channels**: Storefront Live Chat, SMS, WhatsApp, Email, and Marketplace Messages.
-- **Negotiation Policy Engine**:
-  - Asking Price ($P_{\text{ask}}$)
-  - Preferred Price ($P_{\text{pref}}$)
-  - Absolute Minimum Price ($P_{\text{min}}$)
-- **Safety Boundaries**: The AI Sales Agent will never counter below $P_{\text{min}}$. Any offer below $P_{\text{min}}$ is held for manager review. All bot actions are logged in the `ai_actions` ledger.
-- **Capabilities**: Answering specs & condition questions, calculating estimated monthly payments, qualifying trade-in vehicles, scheduling test-drive appointments, and capturing contact information.
+### 2.3 Team & User Management (Settings -> Team & Users)
+- **Role Hierarchy**: `OWNER`, `ADMIN`, `MANAGER`, `SALES`, `INVENTORY`, `FINANCE`, `VIEWER`.
+- **Server-Side Enforcement**: Only `OWNER` and `ADMIN` can invite users, assign roles, or remove members. Cost basis and private margins are hidden from unauthorized roles.
+- **Audit Logging**: Every invitation, role change, price override, and deal execution is recorded with timestamps and user attribution.
 
-### 2.6 CRM & Lead Pipeline
-- **Pipeline Stages**: `New` → `Contacted` → `Qualified` → `Appointment` → `Negotiating` → `Pending` → `Sold` → `Lost`.
-- **Lead Record**: Name, Email, Phone, Preferred Vehicle, Trade-in Details, Pre-approved Financing Status, Lead Score (1–100), Interaction History, and Assigned Salesperson.
+### 2.4 Consumer Automotive Marketplace (`/cars`, `/cars/[id]`)
+- **Platform-Wide Inventory Search**: Real-time filtering across Make, Model, Trim, Year, Price Range, Max Monthly Payment, Mileage, Fuel Type (EV / Hybrid / Gas), Drivetrain, and ZIP radius.
+- **Vehicle Cards**: High-res photo, condition grade, asking price, estimated monthly payment (60 mos @ 5.99%), dealer location, and 1-click test drive link.
+- **Vehicle Detail Page (`/cars/[id]`)**: Photo gallery, decoded NHTSA VIN specifications, dealer hours/contact, similar vehicles, and guest lead capture modals:
+  - `CHECK AVAILABILITY`
+  - `MESSAGE DEALER`
+  - `SCHEDULE TEST DRIVE`
+  - `MAKE OFFER`
+  - `START FINANCING`
+  - `VALUE TRADE-IN`
+- **Explicit Consent**: Captures explicit opt-in consent for SMS and email marketing with IP timestamps.
 
-### 2.7 F&I Deal Desk & Documents
-- **Financial Desk**: Sale price, trade-in allowance, trade-in payoff, doc fee, state sales tax, title/reg fee, down payment, financed balance, interest rate (APR), term (months), and monthly payment.
-- **Document Generation**: Print-ready and downloadable Buyer's Order / Bill of Sale.
-- **Deal Execution**: Transitioning deal to `Funded` or `Delivered` triggers:
-  1. Vehicle status updated to `Sold`.
-  2. Automatic removal of all active marketplace listings.
-  3. Realized gross profit calculation & reporting.
+### 2.5 Public Lease Deal Discovery (`/lease-deals`)
+- **Lease Deal Discovery**: Aggregates OEM programs and verified dealer lease specials.
+- **True Effective Monthly Cost**: Computes exact cost amortization:
+  $$\text{Effective Monthly Cost} = \frac{\text{Monthly Payment} \times \text{Term} + \text{Due at Signing} + \text{Unavoidable Fees}}{\text{Term}}$$
+- **Explainable Lease Deal Score (0–100)**: Evaluates residual value percentage, money factor APR equivalent, manufacturer incentives, and upfront down payment.
+- **Interactive Lease Calculator**: Live input adjustment for MSRP, discount, incentives, residual %, money factor, term, due at signing, and state taxes.
 
-### 2.8 Executive Dashboard & Dealer AI Assistant
-- **Metrics**: Total Inventory Value, Inventory Cost, Potential Gross Profit, Active Units, Stale Units (>45 days), Leads Pipeline, Unread Conversations, Pending Deals, YTD Sold Units, and Realized Gross Margin.
-- **Daily Dealer Briefing**: Daily AI-generated summary of overnight leads, aged inventory alerts, and recommended pricing adjustments.
-- **Conversational Assistant**: Context-aware assistant capable of running queries across inventory, margins, and leads.
+### 2.6 Opportunity Center & Cross-Dealer Arbitrage
+- **Multi-Source Sourcing Tabs**: `AUCTIONS`, `DEALER INVENTORY`, `PRIVATE MARKET`, `TRADE-INS`, `WHOLESALE`, `LEASE RETURNS`, `WATCHLIST`.
+- **Arbitrage Mathematics**:
+  $$\text{Expected Margin} = \text{Estimated Market Value} - (\text{Acquisition Price} + \text{Transport} + \text{Reconditioning} + \text{Fees})$$
+- **Data Provenance**: Every metric identifies whether it is `LIVE`, `PROVIDER_DATA`, `CALCULATED`, `DEALER_ENTERED`, `ESTIMATED`, or `SIMULATED`.
 
-### 2.9 Public Storefront & Mobile Experience
-- **Storefront (/storefront)**: Public-facing responsive showroom with inventory search/filter, vehicle detail pages with high-res photo gallery, payment calculator, test drive booking modal, trade-in valuation intake form, and live AI assistant chat widget.
-- **Dealer Mobile/PWA**: Touch-friendly mobile layout with VIN scanner simulator, quick camera/photo upload, instant lead response, and auction bid calculator.
+### 2.7 Master Listing Studio & Multi-Marketplace Hub
+- **Single Master Listing**: AI Listing Studio creates tailored copy for Storefront, Facebook Marketplace, Autotrader, Cars.com, and Craigslist.
+- **Automated Post-Sale Delisting**: When a deal closes (`vehicle.status = SOLD`), the system triggers instant delisting across all connected channels.
+
+### 2.8 Autonomous AI Sales Agent & Unified Inbox
+- **Bounded Negotiation Engine**: AI negotiates strictly within dealer-approved price boundaries: $\text{Asking Price} \ge \text{Counter Price} \ge \text{Min Floor Price}$.
+- **Omnichannel Inbox**: Unifies customer conversations across Storefront Web Chat, SMS via Twilio, and Facebook Messenger into a single desk.
+
+### 2.9 F&I Deal Desk & Legal Documents
+- **Complete Desking Calculations**: Vehicle price, doc fee, state sales tax, title/registration, trade-in allowance, trade-in payoff, down payment, financed amount, APR, term, and monthly payment.
+- **Document Generation**: Print-ready Buyer's Order and Bill of Sale contracts.

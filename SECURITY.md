@@ -1,23 +1,37 @@
-# DealerOS Security & Compliance Policy
+# DealerOS Security & Compliance Architecture
 
-## 1. Multi-Tenant Isolation & Authorization
-- **Tenant Scope Enforcement**: All data mutations and queries must resolve the caller's verified `organizationId`.
-- **Role-Based Access Control (RBAC)**:
-  - `OWNER`: Full administrative control, billing, organization settings, user provisioning.
-  - `MANAGER`: Sourcing, inventory, approvals, pricing modifications, AI policy configuration.
-  - `SALES`: Lead management, messaging, customer quotes within permitted negotiation thresholds.
-  - `INVENTORY`: Vehicle intake, photo uploads, repair/expense logging.
-  - `FINANCE`: Deal structuring, tax calculation, F&I documents, bill of sale generation.
-  - `VIEWER`: Read-only access to inventory and basic metrics.
+## 1. Multi-Tenant Isolation
+1. **Server-Side Context Verification**: Every database query executes through session-verified organization filters (`organizationId = tenant.organizationId`).
+2. **Session Security**: Session tokens are cryptographically signed using Web Crypto algorithms (`HS256`) via `jose`, storing `userId`, `organizationId`, and `role`. Tokens are transmitted exclusively in secure HTTP-only cookies (`dealeros_session`).
+3. **Password Security**: All user passwords are encrypted using `bcryptjs` with salt rounds = 10. Passwords are never returned in API payloads.
 
-## 2. Autonomous AI Safety & Guardrails
-- **Strict Price Floor Invariance**: The AI Sales Agent is physically incapable of finalizing or offering a price lower than the vehicle's `minPrice`.
-- **Human-in-the-Loop Approval Gates**:
-  - Out-of-band price requests require explicit Manager approval.
-  - Initial listing publication to external marketplaces requires one-click Dealer confirmation.
-  - Modifying deal terms requires Finance or Manager role.
-- **AI Action Audit Ledger**: Every prompt, tool invocation, generated response, and automated decision is immutably recorded in `ai_actions` with a cryptographic timestamp and organization ID.
+---
 
-## 3. Data Protection & Hygiene
-- **Secret Management**: API keys and webhook secrets must be provided via environment variables (`.env.local`) and never logged or exposed in client bundles.
-- **PII Protection**: Buyer phone numbers and email addresses are masked for lower-tier roles where applicable and strictly isolated per dealership tenant.
+## 2. Role-Based Access Control (RBAC) Matrix
+
+| Capability / Permission | OWNER | ADMIN | MANAGER | SALES | INVENTORY | FINANCE | VIEWER |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Manage Dealership Profile & Billing** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Invite & Manage Staff Roles** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **View Profit Margins & Cost Basis** | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **Approve AI Price Floor Overrides** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Structure & Execute F&I Deals** | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ |
+| **Manage Active Inventory & Recon** | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Engage Leads & Unified Inbox** | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Publish / Edit Marketplace Listings** | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Read-Only Dashboard Analytics** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## 3. Responsible AI Guardrails & Financial Protection
+- **Hard Price Floor Invariants**: The Autonomous AI Sales Agent evaluates mathematical bounds:
+  $$\text{Asking Price} \ge \text{Proposed Counter} \ge \text{Absolute Minimum Floor}$$
+- **Out-of-Bounds Escalation**: Offers below floor price or requests for non-standard financing are held for manager review.
+- **AI Audit Trail**: Every AI tool invocation, generated prompt, and suggested action is recorded in `ai_actions`.
+
+---
+
+## 4. Consumer Data Privacy & Explicit Consent
+- **Opt-In Consent Records**: Guest leads log explicit consent (`MARKETING_SMS`, `MARKETING_EMAIL`, `TERMS_OF_SERVICE`) with IP timestamps.
+- **First-Party Data Only**: No third-party tracking pixels or unauthorized data sharing between dealerships.
+- **GDPR & CCPA Ready**: Full support for customer data export, communication preference updates, and erasure requests.

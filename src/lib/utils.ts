@@ -46,13 +46,15 @@ export function formatDateTime(date: Date | string | null | undefined): string {
 export function calculateMonthlyPayment(
   principal: number,
   annualInterestRatePercent: number,
-  termMonths: number
+  termMonths: number,
+  downPayment: number = 0
 ): number {
-  if (principal <= 0 || termMonths <= 0) return 0;
-  if (annualInterestRatePercent <= 0) return principal / termMonths;
+  const financed = Math.max(0, principal - downPayment);
+  if (financed <= 0 || termMonths <= 0) return 0;
+  if (annualInterestRatePercent <= 0) return financed / termMonths;
   const monthlyRate = annualInterestRatePercent / 100 / 12;
   const payment =
-    (principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) /
+    (financed * (monthlyRate * Math.pow(1 + monthlyRate, termMonths))) /
     (Math.pow(1 + monthlyRate, termMonths) - 1);
   return isNaN(payment) ? 0 : Math.round(payment);
 }

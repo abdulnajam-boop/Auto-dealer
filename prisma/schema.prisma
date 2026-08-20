@@ -23,23 +23,31 @@ model Organization {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  members             OrganizationMember[]
-  locations           Location[]
-  vehicles            Vehicle[]
-  opportunities       Opportunity[]
-  auctionItems        AuctionItem[]
-  listings            Listing[]
-  marketplaceAccounts MarketplaceAccount[]
-  marketplaceListings MarketplaceListing[]
-  conversations       Conversation[]
-  leads               Lead[]
-  appointments        Appointment[]
-  deals               Deal[]
-  expenses            VehicleExpense[]
-  automationRules     AutomationRule[]
-  aiActions           AiAction[]
-  auditLogs           AuditLog[]
-  notifications       Notification[]
+  members               OrganizationMember[]
+  locations             Location[]
+  vehicles              Vehicle[]
+  opportunities         Opportunity[]
+  auctionItems          AuctionItem[]
+  listings              Listing[]
+  marketplaceAccounts   MarketplaceAccount[]
+  marketplaceListings   MarketplaceListing[]
+  conversations         Conversation[]
+  leads                 Lead[]
+  appointments          Appointment[]
+  deals                 Deal[]
+  expenses              VehicleExpense[]
+  automationRules       AutomationRule[]
+  aiActions             AiAction[]
+  auditLogs             AuditLog[]
+  notifications         Notification[]
+  branding              DealerBranding?
+  invitations           UserInvitation[]
+  opportunityCandidates OpportunityCandidate[]
+  networkListings       DealerNetworkListing[]
+  leaseOffers           LeaseOffer[]
+  subscriptions         Subscription[]
+  usageMeters           UsageMeter[]
+  vehicleInterests      VehicleInterest[]
 
   @@map("organizations")
 }
@@ -582,3 +590,268 @@ model Notification {
   @@index([organizationId, isRead])
   @@map("notifications")
 }
+
+model DealerBranding {
+  id                String   @id @default(cuid())
+  organizationId    String   @unique
+  heroTitle         String?  @default("Find Your Next Exceptional Vehicle")
+  heroSubtitle      String?  @default("Transparent pricing, verified vehicle histories, and frictionless financing.")
+  primaryColor      String?  @default("#10b981")
+  accentColor       String?  @default("#14b8a6")
+  tagline           String?  @default("Integrity in Every Transaction")
+  aboutUs           String?
+  businessHoursJson String?  // e.g. {"Mon-Fri": "9am-8pm", "Sat": "10am-6pm", "Sun": "Closed"}
+  socialLinksJson   String?  // e.g. {"facebook": "...", "instagram": "..."}
+  policiesJson      String?  // Warranty, return, documentation policies
+  customDomain      String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("dealer_branding")
+}
+
+model UserInvitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  role           String   @default("SALES") // OWNER, ADMIN, MANAGER, SALES, INVENTORY, FINANCE, VIEWER
+  token          String   @unique
+  status         String   @default("PENDING") // PENDING, ACCEPTED, REVOKED, EXPIRED
+  invitedById    String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, email])
+  @@map("user_invitations")
+}
+
+model ConsumerProfile {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  phone        String?
+  passwordHash String?
+  isVerified   Boolean  @default(false)
+  zipCode      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  events         ConsumerEvent[]
+  savedVehicles  SavedVehicle[]
+  interests      VehicleInterest[]
+  consentRecords ConsentRecord[]
+
+  @@map("consumer_profiles")
+}
+
+model ConsumerEvent {
+  id                String   @id @default(cuid())
+  consumerProfileId String?
+  sessionId         String
+  eventType         String   // vehicle.viewed, vehicle.saved, dealer.viewed, availability.requested, test_drive.requested, offer.submitted, finance.started, trade_in.started, lease.viewed
+  entityType        String   // VEHICLE, DEALER, LEASE, OPPORTUNITY
+  entityId          String
+  metadataJson      String?
+  ipAddress         String?
+  createdAt         DateTime @default(now())
+
+  consumerProfile ConsumerProfile? @relation(fields: [consumerProfileId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, eventType])
+  @@index([entityType, entityId])
+  @@map("consumer_events")
+}
+
+model VehicleInterest {
+  id                String   @id @default(cuid())
+  organizationId    String
+  consumerProfileId String?
+  vehicleId         String?
+  leadId            String?
+  intentLevel       String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  viewCount         Int      @default(1)
+  hasRequestedQuote Boolean  @default(false)
+  hasRequestedTest  Boolean  @default(false)
+  lastActivityAt    DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  consumerProfile ConsumerProfile? @relation(fields: [consumerProfileId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, intentLevel])
+  @@map("vehicle_interests")
+}
+
+model SavedVehicle {
+  id                String   @id @default(cuid())
+  consumerProfileId String
+  vehicleId         String
+  createdAt         DateTime @default(now())
+
+  consumerProfile ConsumerProfile @relation(fields: [consumerProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([consumerProfileId, vehicleId])
+  @@map("saved_vehicles")
+}
+
+model ConsentRecord {
+  id                String   @id @default(cuid())
+  consumerProfileId String?
+  email             String
+  phone             String?
+  consentType       String   // MARKETING_SMS, MARKETING_EMAIL, PRIVACY_POLICY, TERMS_OF_SERVICE
+  granted           Boolean  @default(true)
+  ipAddress         String?
+  userAgent         String?
+  timestamp         DateTime @default(now())
+
+  consumerProfile ConsumerProfile? @relation(fields: [consumerProfileId], references: [id], onDelete: SetNull)
+
+  @@index([email, consentType])
+  @@map("consent_records")
+}
+
+model OpportunityCandidate {
+  id                       String   @id @default(cuid())
+  organizationId           String
+  sourceType               String   // DEALER_TO_DEALER, AUCTION_FEED, PRIVATE_LISTING, WHOLESALE_NETWORK
+  sourceDealerName         String?
+  sourceLocation           String?
+  vin                      String
+  year                     Int
+  make                     String
+  model                    String
+  trim                     String?
+  mileage                  Int
+  askingPrice              Float
+  estimatedNegotiatedPrice Float
+  estimatedMarketValue     Float
+  estimatedTransportCost   Float    @default(450)
+  estimatedReconCost       Float    @default(600)
+  estimatedGrossMargin     Float
+  opportunityScore         Int      @default(75) // 0-100
+  daysListed               Int      @default(15)
+  listingUrl               String?
+  provenanceJson           String?  // Sources and citations
+  status                   String   @default("NEW") // NEW, WATCHLIST, CONTACTED, ACQUIRED, PASSED
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, sourceType, status])
+  @@map("opportunity_candidates")
+}
+
+model DealerNetworkListing {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  vehicleId            String
+  availabilityType     String   @default("RETAIL_ONLY") // RETAIL_ONLY, WHOLESALE_AVAILABLE, OPEN_TO_OFFERS, TRADE_AVAILABLE
+  wholesaleAskingPrice Float?
+  networkNotes         String?
+  isPublicToNetwork    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, availabilityType])
+  @@map("dealer_network_listings")
+}
+
+model LeaseOffer {
+  id                     String    @id @default(cuid())
+  organizationId         String
+  vehicleId              String?
+  year                   Int
+  make                   String
+  model                  String
+  trim                   String
+  msrp                   Float
+  monthlyPayment         Float
+  effectiveMonthlyCost   Float
+  dueAtSigning           Float
+  termMonths             Int       @default(36)
+  mileageAllowancePerYear Int      @default(10000)
+  residualPercentage     Float     @default(58)
+  residualValue          Float
+  moneyFactor            Float     @default(0.00195)
+  dealerDiscount         Float     @default(0)
+  manufacturerIncentive  Float     @default(0)
+  conquestIncentive      Float     @default(0)
+  loyaltyIncentive       Float     @default(0)
+  acquisitionFee         Float     @default(695)
+  dispositionFee         Float     @default(350)
+  regionEligibility      String    @default("National")
+  dealScore              Int       @default(85) // 0-100
+  scoreExplanationJson   String?   // Strengths, weaknesses, comparables
+  offerExpiresAt         DateTime?
+  sourceProvider         String    @default("DEALER_INVENTORY") // DEALER_INVENTORY, OEM_PROGRAM, PARTNER_FEED, SIMULATED
+  isVerified             Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, make, model])
+  @@index([dealScore])
+  @@map("lease_offers")
+}
+
+model Plan {
+  id              String   @id @default(cuid())
+  code            String   @unique // STARTER, PRO, AI_ACCELERATOR, ENTERPRISE
+  name            String
+  priceMonthly    Float
+  priceAnnual     Float
+  maxVehicles     Int      @default(50)
+  maxUsers        Int      @default(5)
+  featuresJson    String   // JSON array of feature codes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id             String    @id @default(cuid())
+  organizationId String
+  planId         String
+  status         String    @default("ACTIVE") // TRIAL, ACTIVE, PAST_DUE, CANCELLED
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean  @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         Plan         @relation(fields: [planId], references: [id])
+
+  @@index([organizationId, status])
+  @@map("subscriptions")
+}
+
+model UsageMeter {
+  id             String   @id @default(cuid())
+  organizationId String
+  metricName     String   // AI_TOKENS, VIN_DECODES, MARKETPLACE_POSTINGS, SMS_SENT
+  count          Int      @default(0)
+  periodDate     String   // YYYY-MM
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, metricName, periodDate])
+  @@map("usage_meters")
+}
+

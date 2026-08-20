@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import { prisma } from './prisma';
 
-export type UserRole = 'OWNER' | 'MANAGER' | 'SALES' | 'INVENTORY' | 'FINANCE' | 'VIEWER';
+export type UserRole = 'OWNER' | 'ADMIN' | 'MANAGER' | 'SALES' | 'INVENTORY' | 'FINANCE' | 'VIEWER';
 
 export interface SessionPayload {
   userId: string;
@@ -136,13 +136,37 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   OWNER: [
     'org:manage',
     'users:manage',
+    'manage_team',
     'settings:manage',
     'integrations:manage',
     'financials:view',
     'financials:export',
+    'view_financials',
+    'view_cost_basis',
     'inventory:manage',
     'pricing:override',
     'deals:approve',
+    'approve_deals',
+    'deals:manage',
+    'leads:manage',
+    'messages:manage',
+    'ai:manage',
+    'audit:view',
+  ],
+  ADMIN: [
+    'org:manage',
+    'users:manage',
+    'manage_team',
+    'settings:manage',
+    'integrations:manage',
+    'financials:view',
+    'financials:export',
+    'view_financials',
+    'view_cost_basis',
+    'inventory:manage',
+    'pricing:override',
+    'deals:approve',
+    'approve_deals',
     'deals:manage',
     'leads:manage',
     'messages:manage',
@@ -153,9 +177,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     'users:view',
     'settings:view',
     'financials:view',
+    'view_financials',
+    'view_cost_basis',
     'inventory:manage',
     'pricing:override',
     'deals:approve',
+    'approve_deals',
     'deals:manage',
     'leads:manage',
     'messages:manage',
@@ -172,14 +199,18 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   INVENTORY: [
     'inventory:manage',
     'inventory:view',
+    'view_cost_basis',
     'expenses:manage',
     'opportunities:view',
   ],
   FINANCE: [
     'deals:manage',
     'deals:approve',
+    'approve_deals',
     'deals:view',
     'financials:view',
+    'view_financials',
+    'view_cost_basis',
     'expenses:manage',
     'inventory:view',
   ],

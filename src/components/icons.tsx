@@ -74,5 +74,9 @@ export const ChevronRight: IconComponent = icons.ChevronRight;
 export const ChevronDown: IconComponent = icons.ChevronDown;
 export const LogOut: IconComponent = icons.LogOut;
 export const X: IconComponent = icons.X;
+export const Trash2: IconComponent = icons.Trash2;
+export const Calculator: IconComponent = icons.Calculator;
+export const HelpCircle: IconComponent = icons.HelpCircle;
+export const Menu: IconComponent = icons.Menu;
 
 export default icons;

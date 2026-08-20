@@ -826,6 +826,342 @@ async function main() {
     ],
   });
 
+  // 10. Dealer Branding
+  await prisma.dealerBranding.upsert({
+    where: { organizationId: org.id },
+    update: {},
+    create: {
+      organizationId: org.id,
+      heroTitle: 'Welcome to Apex Auto Gallery',
+      heroSubtitle: 'Handcrafted luxury, verified histories, and unmatched transparent pricing in Austin, Texas.',
+      primaryColor: '#10b981',
+      accentColor: '#14b8a6',
+      tagline: 'Precision Driven. Customer Focused.',
+      aboutUs: 'Founded in 2018, Apex Auto Gallery curates the finest pre-owned performance and luxury vehicles with 150-point inspections.',
+      businessHoursJson: JSON.stringify({
+        'Monday - Friday': '9:00 AM - 8:00 PM',
+        'Saturday': '10:00 AM - 6:00 PM',
+        'Sunday': 'Closed for Family',
+      }),
+      socialLinksJson: JSON.stringify({
+        facebook: 'https://facebook.com/apexautogallery',
+        instagram: 'https://instagram.com/apexautogallery',
+        youtube: 'https://youtube.com/apexautogallery',
+      }),
+      policiesJson: JSON.stringify({
+        warranty: 'Every vehicle includes a 3-month / 3,000-mile comprehensive powertrain warranty.',
+        moneyBack: '7-day or 500-mile no-questions-asked vehicle exchange guarantee.',
+        docFee: '$499 standard Texas documentation fee with zero hidden dealer add-ons.',
+      }),
+    },
+  });
+
+  // 11. User Invitations
+  await prisma.userInvitation.upsert({
+    where: { token: 'inv_token_elena_sales' },
+    update: {},
+    create: {
+      organizationId: org.id,
+      email: 'jessica@apexautogallery.com',
+      role: 'SALES',
+      token: 'inv_token_elena_sales',
+      status: 'PENDING',
+      invitedById: userMarcus.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // 12. Dealer-to-Dealer & Private Opportunity Candidates
+  await prisma.opportunityCandidate.createMany({
+    data: [
+      {
+        organizationId: org.id,
+        sourceType: 'DEALER_TO_DEALER',
+        sourceDealerName: 'Lone Star Motors (San Antonio, TX)',
+        sourceLocation: 'San Antonio, TX (78 miles)',
+        vin: '4T1B11HK5NU891234',
+        year: 2022,
+        make: 'Toyota',
+        model: 'Camry',
+        trim: 'SE Nightshade',
+        mileage: 38400,
+        askingPrice: 18900,
+        estimatedNegotiatedPrice: 17800,
+        estimatedMarketValue: 24200,
+        estimatedTransportCost: 250,
+        estimatedReconCost: 550,
+        estimatedGrossMargin: 5600,
+        opportunityScore: 92,
+        daysListed: 64,
+        listingUrl: 'https://lonestarmotors.example/inventory/camry-se',
+        provenanceJson: JSON.stringify({
+          source: 'Lone Star Motors Direct Inventory Feed',
+          compsFound: 14,
+          avgMarketPrice: 24450,
+          confidence: 'HIGH',
+        }),
+        status: 'NEW',
+      },
+      {
+        organizationId: org.id,
+        sourceType: 'WHOLESALE_NETWORK',
+        sourceDealerName: 'DFW Premium Auto Exchange',
+        sourceLocation: 'Dallas, TX (195 miles)',
+        vin: 'WBA5R1C56KAH89012',
+        year: 2021,
+        make: 'BMW',
+        model: '3 Series',
+        trim: '330i M Sport',
+        mileage: 31200,
+        askingPrice: 26500,
+        estimatedNegotiatedPrice: 25200,
+        estimatedMarketValue: 32800,
+        estimatedTransportCost: 400,
+        estimatedReconCost: 850,
+        estimatedGrossMargin: 6350,
+        opportunityScore: 89,
+        daysListed: 42,
+        listingUrl: 'https://dfwexchange.example/whls/bmw-330i',
+        provenanceJson: JSON.stringify({
+          source: 'DealerOS Partner Wholesale Network',
+          compsFound: 9,
+          avgMarketPrice: 32900,
+          confidence: 'HIGH',
+        }),
+        status: 'WATCHLIST',
+      },
+    ],
+  });
+
+  // 13. Dealer Network Listings
+  await prisma.dealerNetworkListing.create({
+    data: {
+      organizationId: org.id,
+      vehicleId: 'veh_camry_2022',
+      availabilityType: 'OPEN_TO_OFFERS',
+      wholesaleAskingPrice: 21500,
+      networkNotes: 'Clean 1-owner title, fresh Michelin tires, ready for immediate delivery.',
+      isPublicToNetwork: true,
+    },
+  });
+
+  // 14. Lease Offers (with explainable scoring & effective monthly calculation)
+  await prisma.leaseOffer.createMany({
+    data: [
+      {
+        organizationId: org.id,
+        year: 2026,
+        make: 'BMW',
+        model: 'iX',
+        trim: 'xDrive50',
+        msrp: 89500,
+        monthlyPayment: 699,
+        effectiveMonthlyCost: 823,
+        dueAtSigning: 4999,
+        termMonths: 36,
+        mileageAllowancePerYear: 10000,
+        residualPercentage: 54,
+        residualValue: 48330,
+        moneyFactor: 0.00115,
+        dealerDiscount: 5500,
+        manufacturerIncentive: 9900,
+        acquisitionFee: 925,
+        dispositionFee: 495,
+        regionEligibility: 'National / Tier 1 Credit',
+        dealScore: 91,
+        scoreExplanationJson: JSON.stringify({
+          strengths: [
+            '$9,900 EV Federal Tax Credit passed directly as cap-cost reduction',
+            'Generous $5,500 dealer discount off MSRP',
+            'Low 0.00115 money factor (equivalent to ~2.76% APR)',
+          ],
+          weaknesses: [
+            '$4,999 due at signing requires upfront cash',
+            '10,000 miles/year allowance ($0.25/mile overage)',
+          ],
+          effectiveCalculation: '($699 * 36 + $4,999) / 36 = $823.75/month true cost basis',
+        }),
+        offerExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        sourceProvider: 'OEM_PROGRAM',
+        isVerified: true,
+      },
+      {
+        organizationId: org.id,
+        year: 2026,
+        make: 'Hyundai',
+        model: 'IONIQ 5',
+        trim: 'SEL RWD',
+        msrp: 49800,
+        monthlyPayment: 299,
+        effectiveMonthlyCost: 382,
+        dueAtSigning: 2999,
+        termMonths: 36,
+        mileageAllowancePerYear: 12000,
+        residualPercentage: 58,
+        residualValue: 28884,
+        moneyFactor: 0.00095,
+        dealerDiscount: 2500,
+        manufacturerIncentive: 7500,
+        acquisitionFee: 650,
+        dispositionFee: 400,
+        regionEligibility: 'National',
+        dealScore: 95,
+        scoreExplanationJson: JSON.stringify({
+          strengths: [
+            'Exceptional value: $299/mo on a $49.8k MSRP vehicle',
+            'Low 0.00095 money factor (~2.28% APR equivalent)',
+            'Higher 12,000 miles/year allowance',
+          ],
+          weaknesses: [
+            '$2,999 due at signing required for advertised tier',
+          ],
+          effectiveCalculation: '($299 * 36 + $2,999) / 36 = $382.30/month true cost basis',
+        }),
+        offerExpiresAt: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
+        sourceProvider: 'OEM_PROGRAM',
+        isVerified: true,
+      },
+      {
+        organizationId: org.id,
+        year: 2025,
+        make: 'Honda',
+        model: 'Civic',
+        trim: 'Sport Sedan',
+        msrp: 27500,
+        monthlyPayment: 269,
+        effectiveMonthlyCost: 341,
+        dueAtSigning: 2599,
+        termMonths: 36,
+        mileageAllowancePerYear: 10000,
+        residualPercentage: 66,
+        residualValue: 18150,
+        moneyFactor: 0.00185,
+        dealerDiscount: 1000,
+        manufacturerIncentive: 500,
+        acquisitionFee: 595,
+        dispositionFee: 395,
+        regionEligibility: 'National',
+        dealScore: 88,
+        scoreExplanationJson: JSON.stringify({
+          strengths: [
+            'High 66% residual value keeps depreciation portion low',
+            'Extremely accessible monthly payment under $270',
+          ],
+          weaknesses: [
+            'Modest manufacturer incentive ($500)',
+          ],
+          effectiveCalculation: '($269 * 36 + $2,599) / 36 = $341.19/month true cost basis',
+        }),
+        offerExpiresAt: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+        sourceProvider: 'DEALER_INVENTORY',
+        isVerified: true,
+      },
+    ],
+  });
+
+  // 15. Plans & Subscriptions
+  const planPro = await prisma.plan.upsert({
+    where: { code: 'PRO' },
+    update: {},
+    create: {
+      code: 'PRO',
+      name: 'DealerOS Professional',
+      priceMonthly: 499,
+      priceAnnual: 4990,
+      maxVehicles: 150,
+      maxUsers: 15,
+      featuresJson: JSON.stringify([
+        'AI_SALES_AGENT',
+        'MULTI_MARKETPLACE_HUB',
+        'AUCTION_CENTER',
+        'OPPORTUNITY_ENGINE',
+        'LEASE_DISCOVERY',
+        'CRM_UNIFIED_INBOX',
+        'NHTSA_VIN_DECODER',
+        'STOREFRONT_CMS',
+      ]),
+    },
+  });
+
+  await prisma.subscription.upsert({
+    where: { id: 'sub_apex_pro' },
+    update: {},
+    create: {
+      id: 'sub_apex_pro',
+      organizationId: org.id,
+      planId: planPro.id,
+      status: 'ACTIVE',
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // 16. Consumer Profile & First-Party Intent Events
+  const consumer = await prisma.consumerProfile.upsert({
+    where: { email: 'emily.rodriguez@example.com' },
+    update: {},
+    create: {
+      id: 'consumer_emily',
+      email: 'emily.rodriguez@example.com',
+      name: 'Emily Rodriguez',
+      phone: '(512) 555-0188',
+      isVerified: true,
+      zipCode: '78759',
+    },
+  });
+
+  await prisma.consumerEvent.createMany({
+    data: [
+      {
+        consumerProfileId: consumer.id,
+        sessionId: 'sess_emily_1',
+        eventType: 'vehicle.viewed',
+        entityType: 'VEHICLE',
+        entityId: 'veh_camry_2022',
+        metadataJson: JSON.stringify({ durationSec: 140, referrer: '/cars' }),
+      },
+      {
+        consumerProfileId: consumer.id,
+        sessionId: 'sess_emily_1',
+        eventType: 'vehicle.saved',
+        entityType: 'VEHICLE',
+        entityId: 'veh_camry_2022',
+      },
+      {
+        consumerProfileId: consumer.id,
+        sessionId: 'sess_emily_1',
+        eventType: 'test_drive.requested',
+        entityType: 'VEHICLE',
+        entityId: 'veh_camry_2022',
+        metadataJson: JSON.stringify({ preferredDate: '2026-08-21T14:00:00Z' }),
+      },
+    ],
+  });
+
+  await prisma.vehicleInterest.create({
+    data: {
+      organizationId: org.id,
+      consumerProfileId: consumer.id,
+      vehicleId: 'veh_camry_2022',
+      intentLevel: 'HIGH',
+      viewCount: 4,
+      hasRequestedQuote: true,
+      hasRequestedTest: true,
+    },
+  });
+
+  await prisma.consentRecord.create({
+    data: {
+      consumerProfileId: consumer.id,
+      email: 'emily.rodriguez@example.com',
+      phone: '(512) 555-0188',
+      consentType: 'MARKETING_SMS',
+      granted: true,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+    },
+  });
+
   console.log('✅ DealerOS database successfully seeded!');
 }
 
