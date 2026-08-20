@@ -1,0 +1,584 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  phone        String?
+  email        String?
+  address      String?
+  city         String?
+  state        String?
+  zip          String?
+  website      String?
+  logoUrl      String?
+  settingsJson String?  // Default pricing bounds, tax rate, doc fee, AI sales rules
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members             OrganizationMember[]
+  locations           Location[]
+  vehicles            Vehicle[]
+  opportunities       Opportunity[]
+  auctionItems        AuctionItem[]
+  listings            Listing[]
+  marketplaceAccounts MarketplaceAccount[]
+  marketplaceListings MarketplaceListing[]
+  conversations       Conversation[]
+  leads               Lead[]
+  appointments        Appointment[]
+  deals               Deal[]
+  expenses            VehicleExpense[]
+  automationRules     AutomationRule[]
+  aiActions           AiAction[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+
+  @@map("organizations")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String?
+  avatarUrl    String?
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships   OrganizationMember[]
+  assignedLeads Lead[]               @relation("AssignedSalesperson")
+  aiActions     AiAction[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String   @default("SALES") // OWNER, MANAGER, SALES, INVENTORY, FINANCE, VIEWER
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+model Location {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  address        String
+  city           String
+  state          String
+  zip            String
+  phone          String?
+  isPrimary      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicles     Vehicle[]
+
+  @@map("locations")
+}
+
+model Vehicle {
+  id              String    @id @default(cuid())
+  organizationId  String
+  locationId      String?
+  vin             String
+  stockNumber     String
+  year            Int
+  make            String
+  model           String
+  trim            String?
+  mileage         Int
+  exteriorColor   String
+  interiorColor   String?
+  engine          String?
+  transmission    String?
+  drivetrain      String?
+  fuelType        String?
+  bodyStyle       String?
+  doors           Int?
+  featuresJson    String?   // Array of strings or spec breakdown
+  
+  // Cost & Pricing
+  purchaseDate    DateTime?
+  purchaseSource  String?   // MANHEIM, ACV, COPART, TRADE_IN, PRIVATE_PARTY, OTHER
+  purchasePrice   Float     @default(0)
+  totalCostBasis  Float     @default(0)
+  askingPrice     Float     @default(0)
+  preferredPrice  Float     @default(0)
+  minPrice        Float     @default(0)
+  soldPrice       Float?
+  soldDate        DateTime?
+  
+  // Status: OPPORTUNITY, PURCHASED, IN_TRANSIT, RECONDITIONING, READY, LISTED, PENDING, SOLD, WHOLESALE
+  status          String    @default("READY")
+  conditionGrade  String?   // EXCELLENT, CLEAN, AVERAGE, ROUGH
+  notes           String?
+  daysInInventory Int       @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  location            Location?            @relation(fields: [locationId], references: [id])
+  photos              VehiclePhoto[]
+  documents           VehicleDocument[]
+  expenses            VehicleExpense[]
+  listings            Listing[]
+  marketplaceListings MarketplaceListing[]
+  conversations       Conversation[]
+  leads               Lead[]
+  appointments        Appointment[]
+  deals               Deal[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, vin])
+  @@index([organizationId, stockNumber])
+  @@map("vehicles")
+}
+
+model VehiclePhoto {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  url          String
+  thumbnailUrl String?
+  caption      String?
+  isCover      Boolean  @default(false)
+  orderIndex   Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_photos")
+}
+
+model VehicleDocument {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  title        String
+  documentType String   // TITLE, CARFAX, INSPECTION_REPORT, BILL_OF_SALE, REPAIR_INVOICE
+  fileUrl      String
+  createdAt    DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@map("vehicle_documents")
+}
+
+model VehicleExpense {
+  id             String    @id @default(cuid())
+  organizationId String
+  vehicleId      String?
+  category       String    // ACQUISITION, AUCTION_FEE, TRANSPORTATION, MECHANICAL, BODY_PAINT, DETAILING, PARTS, INSPECTION, ADVERTISING, OTHER
+  description    String
+  vendor         String?
+  amount         Float
+  date           DateTime  @default(now())
+  receiptUrl     String?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, vehicleId])
+  @@map("vehicle_expenses")
+}
+
+model Opportunity {
+  id                     String    @id @default(cuid())
+  organizationId         String
+  vin                    String
+  year                   Int
+  make                   String
+  model                  String
+  trim                   String?
+  mileage                Int
+  conditionGrade         String    @default("CLEAN") // EXCELLENT, CLEAN, AVERAGE, ROUGH
+  sourceChannel          String    // MANHEIM, ACV, COPART, TRADE_IN, PRIVATE_PARTY
+  sourceLocation         String?
+  currentBid             Float     @default(0)
+  buyFee                 Float     @default(0)
+  transportEstimate      Float     @default(0)
+  repairEstimate         Float     @default(0)
+  
+  // Valuation Outputs
+  estimatedMarketValue   Float     @default(0)
+  targetAcquisitionPrice Float     @default(0)
+  maxRecommendedBid      Float     @default(0)
+  expectedSalePrice      Float     @default(0)
+  expectedGrossProfit    Float     @default(0)
+  expectedRoiPercent     Float     @default(0)
+  daysToSellEstimate     Int       @default(30)
+  demandScore            Int       @default(75) // 1-100
+  opportunityScore       Int       @default(70) // 0-100
+  recommendation         String    @default("BUY") // STRONG_BUY, BUY, WATCH, PASS
+  
+  // Workflow Status: ANALYZING, WATCHLIST, BIDDING, WON, LOST, REJECTED, CONVERTED
+  status                 String    @default("ANALYZING")
+  valuationDataJson      String?   // JSON comps and breakdown
+  convertedVehicleId     String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auctionItems AuctionItem[]
+
+  @@index([organizationId, status])
+  @@map("opportunities")
+}
+
+model AuctionItem {
+  id              String    @id @default(cuid())
+  organizationId  String
+  opportunityId   String?
+  auctionPlatform String    // MANHEIM, ACV, COPART, ADESA, OTHER
+  auctionDate     DateTime?
+  runNumber       String?
+  lane            String?
+  startingBid     Float     @default(0)
+  currentBid      Float     @default(0)
+  maxBid          Float     @default(0)
+  status          String    @default("WATCHING") // WATCHING, BID_PLACED, WON, LOST, PASSED
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  opportunity  Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([organizationId, status])
+  @@map("auction_items")
+}
+
+model Listing {
+  id                   String    @id @default(cuid())
+  organizationId       String
+  vehicleId            String
+  headline             String
+  shortDescription     String
+  longDescription      String
+  featureBulletsJson   String?   // JSON array of strings
+  seoTitle             String?
+  seoDescription       String?
+  facebookCopy         String?
+  craigslistCopy       String?
+  socialCopy           String?
+  hashtagsJson         String?   // JSON array
+  suggestedAskingPrice Float     @default(0)
+  status               String    @default("DRAFT") // DRAFT, APPROVED, PUBLISHED, ARCHIVED
+  generatedAt          DateTime  @default(now())
+  approvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  organization        Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicle             Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  marketplaceListings MarketplaceListing[]
+
+  @@index([organizationId, vehicleId])
+  @@map("listings")
+}
+
+model MarketplaceAccount {
+  id             String   @id @default(cuid())
+  organizationId String
+  platform       String   // STOREFRONT, FACEBOOK, CRAIGSLIST, EBAY_MOTORS, AUTOTRADER, CARS_COM, CARGURUS
+  accountName    String
+  apiKey         String?
+  status         String   @default("ACTIVE") // ACTIVE, DISCONNECTED, ERROR
+  settingsJson   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, platform])
+  @@map("marketplace_accounts")
+}
+
+model MarketplaceListing {
+  id             String    @id @default(cuid())
+  organizationId String
+  listingId      String
+  vehicleId      String
+  platform       String    // STOREFRONT, FACEBOOK, CRAIGSLIST, EBAY_MOTORS, AUTOTRADER, CARS_COM, CARGURUS
+  externalId     String?
+  externalUrl    String?
+  publishedPrice Float     @default(0)
+  status         String    @default("PENDING") // DRAFT, PENDING, LIVE, FAILED, EXPIRED, REMOVED
+  errorMessage   String?
+  lastSyncedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  listing      Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, platform, status])
+  @@map("marketplace_listings")
+}
+
+model Conversation {
+  id             String    @id @default(cuid())
+  organizationId String
+  vehicleId      String?
+  buyerName      String
+  buyerPhone     String?
+  buyerEmail     String?
+  channel        String    @default("STOREFRONT_CHAT") // STOREFRONT_CHAT, SMS, WHATSAPP, EMAIL, FACEBOOK
+  status         String    @default("ACTIVE") // ACTIVE, SNOOZED, RESOLVED, ARCHIVED
+  leadScore      Int       @default(60)
+  lastMessageAt  DateTime  @default(now())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
+  messages     Message[]
+  lead         Lead?
+
+  @@index([organizationId, channel, status])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderType     String   // BUYER, DEALER_USER, AI_SALES_AGENT
+  senderName     String
+  content        String
+  metadataJson   String?  // Offers detected, appointment requests, sentiment
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Lead {
+  id                     String    @id @default(cuid())
+  organizationId         String
+  conversationId         String?   @unique
+  vehicleId              String?
+  name                   String
+  email                  String?
+  phone                  String?
+  preferredContactMethod String    @default("SMS") // SMS, EMAIL, PHONE, WHATSAPP
+  
+  // Trade-in details
+  tradeInYear            Int?
+  tradeInMake            String?
+  tradeInModel           String?
+  tradeInMileage         Int?
+  tradeInEstimate        Float?
+  
+  // Financing readiness
+  financingNeeded        Boolean   @default(true)
+  downPaymentAmount      Float?
+  creditTier             String?   // EXCELLENT, GOOD, FAIR, REBUILDING
+  
+  initialOffer           Float?
+  currentOffer           Float?
+  
+  // Stage: NEW, CONTACTED, QUALIFIED, APPOINTMENT, NEGOTIATING, PENDING, SOLD, LOST
+  stage                  String    @default("NEW")
+  score                  Int       @default(65) // 1-100
+  assignedToId           String?
+  notes                  String?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id])
+  vehicle      Vehicle?      @relation(fields: [vehicleId], references: [id])
+  assignedTo   User?         @relation("AssignedSalesperson", fields: [assignedToId], references: [id])
+  appointments Appointment[]
+  deals        Deal[]
+
+  @@index([organizationId, stage])
+  @@map("leads")
+}
+
+model Appointment {
+  id              String   @id @default(cuid())
+  organizationId  String
+  leadId          String?
+  vehicleId       String?
+  customerName    String
+  customerPhone   String?
+  customerEmail   String?
+  type            String   @default("TEST_DRIVE") // TEST_DRIVE, VEHICLE_INSPECTION, TRADE_IN_APPRAISAL, DELIVERY, SIGNING
+  scheduledAt     DateTime
+  durationMinutes Int      @default(45)
+  status          String   @default("SCHEDULED") // SCHEDULED, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation(fields: [leadId], references: [id])
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
+
+  @@index([organizationId, scheduledAt])
+  @@map("appointments")
+}
+
+model Deal {
+  id                String    @id @default(cuid())
+  organizationId    String
+  vehicleId         String
+  leadId            String?
+  buyerName         String
+  buyerEmail        String?
+  buyerPhone        String?
+  buyerAddress      String?
+  
+  // Pricing & Breakdown
+  salePrice         Float
+  docFee            Float     @default(499)
+  taxAmount         Float     @default(0)
+  titleRegFee       Float     @default(150)
+  accessoriesAmount Float     @default(0)
+  tradeInAllowance  Float     @default(0)
+  tradeInPayoff     Float     @default(0)
+  cashDownPayment   Float     @default(0)
+  financedAmount    Float     @default(0)
+  aprRate           Float     @default(6.99)
+  loanTermMonths    Int       @default(60)
+  monthlyPayment    Float     @default(0)
+  totalDue          Float     @default(0)
+  
+  // Status: DRAFT, PENDING_APPROVAL, APPROVED, CONTRACTED, FUNDED, DELIVERED, CANCELLED
+  dealStatus        String    @default("DRAFT")
+  fundedDate        DateTime?
+  deliveredDate     DateTime?
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle        @relation(fields: [vehicleId], references: [id])
+  lead         Lead?          @relation(fields: [leadId], references: [id])
+  documents    DealDocument[]
+
+  @@index([organizationId, dealStatus])
+  @@map("deals")
+}
+
+model DealDocument {
+  id           String   @id @default(cuid())
+  dealId       String
+  documentType String   // BUYERS_ORDER, BILL_OF_SALE, ODOMETER_DISCLOSURE, FINANCING_AGREEMENT, TITLE_APPLICATION
+  title        String
+  fileUrl      String?
+  status       String   @default("DRAFT") // DRAFT, READY, SIGNED
+  createdAt    DateTime @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@map("deal_documents")
+}
+
+model AutomationRule {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  triggerEvent   String   // VEHICLE_READY, LISTING_APPROVED, MESSAGE_RECEIVED, INVENTORY_AGED, VEHICLE_SOLD, OFFER_RECEIVED
+  conditionsJson String?  // Optional filters (e.g. days > 45, profit > 3000)
+  actionsJson    String   // Actions (GENERATE_LISTING, PUBLISH_LISTINGS, REMOVE_LISTINGS, SEND_ALERT, DRAFT_AI_REPLY)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  runs         AutomationRun[]
+
+  @@map("automation_rules")
+}
+
+model AutomationRun {
+  id               String   @id @default(cuid())
+  automationRuleId String
+  triggerEvent     String
+  entityId         String?
+  status           String   @default("SUCCESS") // SUCCESS, FAILED, SKIPPED
+  logDetails       String?
+  createdAt        DateTime @default(now())
+
+  rule AutomationRule @relation(fields: [automationRuleId], references: [id], onDelete: Cascade)
+
+  @@map("automation_runs")
+}
+
+model AiAction {
+  id               String   @id @default(cuid())
+  organizationId   String
+  userId           String?
+  agentType        String   // SALES_AGENT, VALUATION_ANALYST, LISTING_COPYWRITER, EXECUTIVE_ASSISTANT, PRICING_BOT
+  actionType       String   // GENERATE_LISTING, DRAFT_RESPONSE, MAKE_OFFER, EVALUATE_OPPORTUNITY, PRICE_REVIEW
+  promptInput      String?
+  toolCallsJson    String?
+  outputResult     String?
+  requiresApproval Boolean  @default(false)
+  isApproved       Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, agentType, createdAt])
+  @@map("ai_actions")
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  action         String   // e.g. VEHICLE_CREATED, LISTING_PUBLISHED, DEAL_DELIVERED, PRICE_CHANGED
+  entityType     String   // VEHICLE, LISTING, DEAL, LEAD, EXPENSE, OPPORTUNITY
+  entityId       String
+  detailsJson    String?
+  ipAddress      String?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, entityType, entityId])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  organizationId String
+  title          String
+  message        String
+  type           String   @default("INFO") // INFO, SUCCESS, WARNING, URGENT
+  linkUrl        String?
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isRead])
+  @@map("notifications")
+}
