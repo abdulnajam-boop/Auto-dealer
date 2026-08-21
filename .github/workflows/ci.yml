@@ -11,8 +11,25 @@ jobs:
     name: Lint, Typecheck, Test & Build
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: autoaidealership_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     env:
-      DATABASE_URL: "file:./ci.db"
+      DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/autoaidealership_test?schema=public"
+      ENCRYPTION_SECRET: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      JWT_SECRET: "test-jwt-secret-key-32-chars-long-here"
       NODE_ENV: "test"
 
     steps:
@@ -31,8 +48,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Push Prisma Schema to Test DB
-        run: npx prisma db push --skip-generate
+      - name: Deploy Prisma PostgreSQL Migrations
+        run: npx prisma migrate deploy
 
       - name: Run ESLint
         run: npm run lint
@@ -40,7 +57,7 @@ jobs:
       - name: Run TypeScript Typecheck
         run: npm run typecheck
 
-      - name: Run Vitest Suite
+      - name: Run Vitest Test Suite
         run: npm test
 
       - name: Build Next.js Application

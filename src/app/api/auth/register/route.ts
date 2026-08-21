@@ -14,11 +14,15 @@ function slugify(text: string): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password, dealershipName, city, state, phone } = body;
+    const { firstName, lastName, name, email, password, dealershipName, city, state, phone } = body;
 
-    if (!name || !email || !password || !dealershipName) {
+    const resolvedFirstName = firstName || (name ? name.split(' ')[0] : '');
+    const resolvedLastName = lastName || (name ? name.split(' ').slice(1).join(' ') : '');
+    const fullName = `${resolvedFirstName} ${resolvedLastName}`.trim() || name;
+
+    if (!fullName || !email || !password || !dealershipName) {
       return NextResponse.json(
-        { error: 'Name, email, password, and dealership name are required.' },
+        { error: 'First name, last name, email, password, and dealership name are required.' },
         { status: 400 }
       );
     }
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'An account with this email address already exists. Please log in.' },
+        { error: 'An account with this email address already exists. Please sign in.' },
         { status: 409 }
       );
     }
@@ -55,14 +59,33 @@ export async function POST(req: NextRequest) {
       counter++;
     }
 
-    // 3. Hash password
+    // 3. Hash password securely
     const passwordHash = await hashPassword(password);
 
-    // 4. Create user, organization, member, primary location, and default marketplace accounts in transaction
+    // 4. Ensure default starter plan exists
+    let starterPlan = await prisma.plan.findUnique({
+      where: { code: 'STARTER' },
+    });
+
+    if (!starterPlan) {
+      starterPlan = await prisma.plan.create({
+        data: {
+          code: 'STARTER',
+          name: 'Starter Tier',
+          priceMonthly: 249,
+          priceAnnual: 2388,
+          maxVehicles: 30,
+          maxUsers: 3,
+          featuresJson: JSON.stringify(['INVENTORY', 'STOREFRONT', 'BASIC_CRM']),
+        },
+      });
+    }
+
+    // 5. Create user, organization, member, primary location, branding, and subscription in transaction
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          name: name.trim(),
+          name: fullName,
           email: normalizedEmail,
           passwordHash,
           phone: phone || null,
@@ -75,13 +98,19 @@ export async function POST(req: NextRequest) {
           slug,
           phone: phone || null,
           city: city || null,
-          state: state || null,
+          state: state || 'TX',
+          dealerType: 'INDEPENDENT',
+          inventorySize: '1-25',
+          onboardingCompleted: false,
+          onboardingStep: 1,
           settingsJson: JSON.stringify({
             docFee: 499,
             salesTaxRate: 0.0625,
             titleRegFee: 150,
             aiAutoReplyEnabled: true,
             minProfitTarget: 1500,
+            requireApprovalForOffers: true,
+            maxAiDiscount: 1000,
           }),
         },
       });
@@ -99,7 +128,7 @@ export async function POST(req: NextRequest) {
         data: {
           organizationId: organization.id,
           name: 'Main Showroom',
-          address: '100 Dealership Way',
+          address: '100 Auto Blvd',
           city: city || 'Austin',
           state: state || 'TX',
           zip: '78701',
@@ -108,7 +137,45 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Create marketplace accounts
+      // Create default dealer branding
+      await tx.dealerBranding.create({
+        data: {
+          organizationId: organization.id,
+          heroTitle: `Welcome to ${dealershipName.trim()}`,
+          heroSubtitle: 'Exceptional pre-owned vehicles, transparent pricing, and instant financing.',
+          primaryColor: '#10b981',
+          accentColor: '#14b8a6',
+          tagline: 'Quality Vehicles. Trusted Service.',
+          showOwnInventory: true,
+          showLeaseDeals: false,
+          showNetworkInventory: false,
+          showPartnerListings: false,
+          showCarfaxCta: true,
+          showFinancingCta: true,
+          showTradeInCta: true,
+          showMakeOffer: true,
+          showScheduleTestDrive: true,
+          showContactDealer: true,
+          showVehicleRecommendations: true,
+          preferredHistoryProvider: 'VINAUDIT',
+        },
+      });
+
+      // Create 14-day starter trial subscription
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 14);
+
+      await tx.subscription.create({
+        data: {
+          organizationId: organization.id,
+          planId: starterPlan.id,
+          status: 'TRIAL',
+          currentPeriodStart: new Date(),
+          currentPeriodEnd: trialEndDate,
+        },
+      });
+
+      // Create default marketplace accounts
       const defaultMarketplaces = ['STOREFRONT', 'FACEBOOK', 'CRAIGSLIST', 'EBAY_MOTORS'];
       for (const platform of defaultMarketplaces) {
         await tx.marketplaceAccount.create({
@@ -116,7 +183,7 @@ export async function POST(req: NextRequest) {
             organizationId: organization.id,
             platform,
             accountName: `${organization.name} (${platform})`,
-            status: platform === 'STOREFRONT' ? 'ACTIVE' : 'ACTIVE',
+            status: 'ACTIVE',
           },
         });
       }
@@ -126,7 +193,7 @@ export async function POST(req: NextRequest) {
 
     const { user, organization } = result;
 
-    // 5. Create and set session cookie
+    // 6. Create and set HTTP-only session cookie
     const token = await createSessionToken({
       userId: user.id,
       email: user.email,
@@ -141,6 +208,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      redirectUrl: `/onboarding`,
       user: {
         id: user.id,
         email: user.email,

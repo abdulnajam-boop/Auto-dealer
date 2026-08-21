@@ -91,7 +91,7 @@ function LoginForm() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Sign In to DealerOS</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-white">Sign In to AutoAIdealership</h1>
         <p className="text-sm text-slate-400">
           Enter your credentials to access your dealership workspace
         </p>

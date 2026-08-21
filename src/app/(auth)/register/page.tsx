@@ -3,13 +3,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, User, Mail, Lock, Phone, MapPin, ArrowRight, AlertCircle, ShieldCheck } from '@/components/icons';
+import { Building2, User, Mail, Lock, Phone, MapPin, ArrowRight, AlertCircle } from '@/components/icons';
+import { BrandLogo } from '@/components/brand/BrandLogo';
 
 export default function RegisterPage() {
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     dealershipName: '',
@@ -43,7 +45,7 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Failed to create dealership account.');
       }
 
-      router.push('/dashboard');
+      router.push(data.redirectUrl || '/onboarding');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
@@ -56,9 +58,12 @@ export default function RegisterPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center space-y-2">
+        <div className="flex justify-center pb-2">
+          <BrandLogo variant="full" theme="dark" size="md" />
+        </div>
         <h1 className="text-2xl font-bold tracking-tight text-white">Create Dealership Account</h1>
         <p className="text-sm text-slate-400">
-          Onboard your dealership into AutoAIdealership with full autonomous AI capabilities
+          Start your 14-day trial of AutoAIdealership with complete inventory, CRM, and storefront tools
         </p>
       </div>
 
@@ -87,7 +92,7 @@ export default function RegisterPage() {
                   required
                   value={formData.dealershipName}
                   onChange={handleChange}
-                  placeholder="e.g. Summit Luxury Motors"
+                  placeholder="e.g. Apex Auto Gallery"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
               </div>
@@ -110,10 +115,11 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">State</label>
+                <label className="text-xs font-semibold text-slate-300">State *</label>
                 <input
                   type="text"
                   name="state"
+                  required
                   value={formData.state}
                   onChange={handleChange}
                   placeholder="TX"
@@ -129,35 +135,68 @@ export default function RegisterPage() {
               2. Owner & Admin Account
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Full Name *</label>
-              <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">First Name *</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    name="firstName"
+                    required
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="Marcus"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Last Name *</label>
                 <input
                   type="text"
-                  name="name"
+                  name="lastName"
                   required
-                  value={formData.name}
+                  value={formData.lastName}
                   onChange={handleChange}
-                  placeholder="Marcus Vance"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  placeholder="Vance"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Work Email *</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="marcus@dealership.com"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Business Email *</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="marcus@apexmotors.com"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300">Direct Phone *</label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    required
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="512-555-0199"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                  />
+                </div>
               </div>
             </div>
 
@@ -188,7 +227,7 @@ export default function RegisterPage() {
               <span className="inline-block w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Complete Onboarding & Launch</span>
+                <span>Create Dealership & Continue</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

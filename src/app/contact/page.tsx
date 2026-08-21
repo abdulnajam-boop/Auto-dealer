@@ -32,7 +32,7 @@ export default function ContactPage() {
 
       <section className="pt-20 pb-12 border-b border-slate-800 bg-slate-900/30 text-center space-y-4">
         <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-          Get in Touch with DealerOS
+          Get in Touch with AutoAIdealership
         </h1>
         <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
           Have questions regarding enterprise deployments, custom DMS integrations, or partnership opportunities?

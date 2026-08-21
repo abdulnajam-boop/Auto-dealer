@@ -75,7 +75,7 @@ export default async function ConsumerMarketplacePage({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                DealerOS Marketplace
+                AutoAIdealership Marketplace
               </h1>
               <p className="text-xs sm:text-sm text-slate-400">
                 Verified inventory from certified partner dealerships with transparent out-the-door pricing.

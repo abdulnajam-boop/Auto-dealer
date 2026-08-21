@@ -119,7 +119,7 @@ export function Sidebar() {
                 PRO
               </span>
             </div>
-            <div className="text-[11px] text-slate-400">DealerOS SaaS</div>
+            <div className="text-[11px] text-slate-400">AutoAIdealership</div>
           </div>
         </Link>
       </div>

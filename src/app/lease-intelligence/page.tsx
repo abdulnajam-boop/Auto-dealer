@@ -28,7 +28,7 @@ export default function LeaseIntelligencePage() {
           Radical Lease Transparency & Intelligence
         </h1>
         <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-          DealerOS exposes true effective monthly costs, money factor equivalents, and explainable 0–100 Lease Deal Scores for both shoppers and dealership desking managers.
+          AutoAIdealership exposes true effective monthly costs, money factor equivalents, and explainable 0–100 Lease Deal Scores for both shoppers and dealership desking managers.
         </p>
       </section>
 
@@ -40,7 +40,7 @@ export default function LeaseIntelligencePage() {
             </div>
             <h3 className="text-lg font-bold text-white">True Effective Monthly Cost</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Advertised payments often hide $4,000+ in down payments, acquisition fees, and documentation charges. DealerOS computes:
+              Advertised payments often hide $4,000+ in down payments, acquisition fees, and documentation charges. AutoAIdealership computes:
               <br />
               <code className="text-teal-300 font-mono text-[11px] block mt-2 bg-slate-950 p-2 rounded-lg">
                 (Monthly × Term + Due at Signing) / Term
@@ -64,7 +64,7 @@ export default function LeaseIntelligencePage() {
             </div>
             <h3 className="text-lg font-bold text-white">Public Lease Marketplace</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Consumers search nationwide and regional lease specials with direct 1-click test drive bookings and lead delivery straight into your DealerOS CRM.
+              Consumers search nationwide and regional lease specials with direct 1-click test drive bookings and lead delivery straight into your AutoAIdealership CRM.
             </p>
           </div>
         </div>

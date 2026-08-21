@@ -32,6 +32,20 @@ export class VinAuditClient {
     return this.isConfigured;
   }
 
+  public getCapabilitiesStatus(): Record<string, 'LIVE' | 'CONFIGURED' | 'MOCK' | 'UNAVAILABLE'> {
+    const status = this.isConfigured ? 'LIVE' : 'MOCK';
+    return {
+      'VIN Decoder': status,
+      'Vehicle History': status,
+      'Market Value': status,
+      'Market Listings': status,
+      'Ownership Cost': status,
+      'Vehicle Images': status,
+      'Background Removal': status,
+      'Plate-to-VIN': status,
+    };
+  }
+
   // 1. VIN Decoder / Specifications
   public async decodeVin(params: VinAuditSpecRequest, organizationId?: string): Promise<VinAuditSpecResponse> {
     const endpoint = 'specifications';

@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -8,20 +8,24 @@ generator client {
 }
 
 model Organization {
-  id           String   @id @default(cuid())
-  name         String
-  slug         String   @unique
-  phone        String?
-  email        String?
-  address      String?
-  city         String?
-  state        String?
-  zip          String?
-  website      String?
-  logoUrl      String?
-  settingsJson String?  // Default pricing bounds, tax rate, doc fee, AI sales rules
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  phone               String?
+  email               String?
+  address             String?
+  city                String?
+  state               String?
+  zip                 String?
+  website             String?
+  logoUrl             String?
+  dealerType          String?  @default("INDEPENDENT") // INDEPENDENT, FRANCHISE, WHOLESALE, BROKER
+  inventorySize       String?  @default("1-25")        // 1-25, 26-75, 76-150, 150+
+  onboardingCompleted Boolean  @default(false)
+  onboardingStep      Int      @default(1)
+  settingsJson        String?  // Default pricing bounds, tax rate, doc fee, AI sales rules
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   members               OrganizationMember[]
   locations             Location[]
@@ -51,6 +55,7 @@ model Organization {
   vehicleHistoryRecords VehicleHistoryRecord[]
   providerUsageLogs     ProviderUsageLog[]
 
+  @@index([slug])
   @@map("organizations")
 }
 
@@ -69,6 +74,7 @@ model User {
   aiActions     AiAction[]
   auditLogs     AuditLog[]
 
+  @@index([email])
   @@map("users")
 }
 
@@ -83,6 +89,8 @@ model OrganizationMember {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
   @@map("organization_members")
 }
 
@@ -101,6 +109,7 @@ model Location {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   vehicles     Vehicle[]
 
+  @@index([organizationId])
   @@map("locations")
 }
 
@@ -158,9 +167,11 @@ model Vehicle {
   deals               Deal[]
   historyRecords      VehicleHistoryRecord[]
 
+  @@index([organizationId])
   @@index([organizationId, status])
   @@index([organizationId, vin])
   @@index([organizationId, stockNumber])
+  @@index([vin])
   @@map("vehicles")
 }
 
@@ -176,6 +187,8 @@ model VehiclePhoto {
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
+  @@index([vehicleId])
+  @@index([vehicleId, isCover])
   @@map("vehicle_photos")
 }
 
@@ -189,6 +202,7 @@ model VehicleDocument {
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
+  @@index([vehicleId])
   @@map("vehicle_documents")
 }
 
@@ -207,7 +221,9 @@ model VehicleExpense {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, vehicleId])
+  @@index([vehicleId])
   @@map("vehicle_expenses")
 }
 
@@ -250,7 +266,9 @@ model Opportunity {
   organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   auctionItems AuctionItem[]
 
+  @@index([organizationId])
   @@index([organizationId, status])
+  @@index([vin])
   @@map("opportunities")
 }
 
@@ -273,6 +291,7 @@ model AuctionItem {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   opportunity  Opportunity? @relation(fields: [opportunityId], references: [id])
 
+  @@index([organizationId])
   @@index([organizationId, status])
   @@map("auction_items")
 }
@@ -302,24 +321,27 @@ model Listing {
   vehicle             Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   marketplaceListings MarketplaceListing[]
 
+  @@index([organizationId])
   @@index([organizationId, vehicleId])
+  @@index([organizationId, status])
   @@map("listings")
 }
 
 model MarketplaceAccount {
-  id             String   @id @default(cuid())
-  organizationId String
-  platform       String   // STOREFRONT, FACEBOOK, CRAIGSLIST, EBAY_MOTORS, AUTOTRADER, CARS_COM, CARGURUS
-  accountName    String
-  apiKey         String?
-  status         String   @default("ACTIVE") // ACTIVE, DISCONNECTED, ERROR
-  settingsJson   String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String   @id @default(cuid())
+  organizationId   String
+  platform         String   // STOREFRONT, FACEBOOK, CRAIGSLIST, EBAY_MOTORS, AUTOTRADER, CARS_COM, CARGURUS
+  accountName      String
+  encryptedApiKey  String?  // AES-256 encrypted credential string
+  status           String   @default("ACTIVE") // ACTIVE, DISCONNECTED, ERROR
+  settingsJson     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, platform])
+  @@index([organizationId])
   @@map("marketplace_accounts")
 }
 
@@ -342,7 +364,9 @@ model MarketplaceListing {
   listing      Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
   vehicle      Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, platform, status])
+  @@index([vehicleId])
   @@map("marketplace_listings")
 }
 
@@ -365,6 +389,7 @@ model Conversation {
   messages     Message[]
   lead         Lead?
 
+  @@index([organizationId])
   @@index([organizationId, channel, status])
   @@map("conversations")
 }
@@ -380,6 +405,7 @@ model Message {
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
+  @@index([conversationId])
   @@index([conversationId, createdAt])
   @@map("messages")
 }
@@ -424,7 +450,9 @@ model Lead {
   appointments Appointment[]
   deals        Deal[]
 
+  @@index([organizationId])
   @@index([organizationId, stage])
+  @@index([organizationId, createdAt])
   @@map("leads")
 }
 
@@ -448,6 +476,8 @@ model Appointment {
   lead         Lead?        @relation(fields: [leadId], references: [id])
   vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
 
+  @@index([organizationId])
+  @@index([organizationId, status])
   @@index([organizationId, scheduledAt])
   @@map("appointments")
 }
@@ -490,7 +520,9 @@ model Deal {
   lead         Lead?          @relation(fields: [leadId], references: [id])
   documents    DealDocument[]
 
+  @@index([organizationId])
   @@index([organizationId, dealStatus])
+  @@index([organizationId, createdAt])
   @@map("deals")
 }
 
@@ -505,6 +537,7 @@ model DealDocument {
 
   deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
 
+  @@index([dealId])
   @@map("deal_documents")
 }
 
@@ -523,6 +556,7 @@ model AutomationRule {
   organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   runs         AutomationRun[]
 
+  @@index([organizationId])
   @@map("automation_rules")
 }
 
@@ -537,6 +571,7 @@ model AutomationRun {
 
   rule AutomationRule @relation(fields: [automationRuleId], references: [id], onDelete: Cascade)
 
+  @@index([automationRuleId])
   @@map("automation_runs")
 }
 
@@ -556,6 +591,7 @@ model AiAction {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User?        @relation(fields: [userId], references: [id])
 
+  @@index([organizationId])
   @@index([organizationId, agentType, createdAt])
   @@map("ai_actions")
 }
@@ -574,6 +610,7 @@ model AuditLog {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User?        @relation(fields: [userId], references: [id])
 
+  @@index([organizationId])
   @@index([organizationId, entityType, entityId])
   @@map("audit_logs")
 }
@@ -590,6 +627,7 @@ model Notification {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, isRead])
   @@map("notifications")
 }
@@ -627,6 +665,7 @@ model DealerBranding {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@map("dealer_branding")
 }
 
@@ -644,6 +683,7 @@ model UserInvitation {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, email])
   @@map("user_invitations")
 }
@@ -664,6 +704,7 @@ model ConsumerProfile {
   interests      VehicleInterest[]
   consentRecords ConsentRecord[]
 
+  @@index([email])
   @@map("consumer_profiles")
 }
 
@@ -702,6 +743,7 @@ model VehicleInterest {
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   consumerProfile ConsumerProfile? @relation(fields: [consumerProfileId], references: [id], onDelete: SetNull)
 
+  @@index([organizationId])
   @@index([organizationId, intentLevel])
   @@map("vehicle_interests")
 }
@@ -763,7 +805,9 @@ model OpportunityCandidate {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, sourceType, status])
+  @@index([vin])
   @@map("opportunity_candidates")
 }
 
@@ -780,6 +824,7 @@ model DealerNetworkListing {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, availabilityType])
   @@map("dealer_network_listings")
 }
@@ -818,6 +863,7 @@ model LeaseOffer {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, make, model])
   @@index([dealScore])
   @@map("lease_offers")
@@ -854,6 +900,7 @@ model Subscription {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   plan         Plan         @relation(fields: [planId], references: [id])
 
+  @@index([organizationId])
   @@index([organizationId, status])
   @@map("subscriptions")
 }
@@ -870,6 +917,7 @@ model UsageMeter {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, metricName, periodDate])
+  @@index([organizationId])
   @@map("usage_meters")
 }
 
@@ -943,9 +991,8 @@ model ProviderUsageLog {
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([organizationId, provider])
   @@index([provider, endpoint, createdAt])
   @@map("provider_usage_logs")
 }
-
-

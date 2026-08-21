@@ -6,35 +6,63 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.SESSION_SECRET || 'dealeros-super-secure-jwt-session-secret-key-32chars!'
 );
 
-const PUBLIC_PATHS = [
+const PUBLIC_PREFIXES = [
+  '/_next',
+  '/api/_',
+  '/brand',
+  '/public',
+  '/favicon.ico',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/api/auth',
+  '/api/demo',
+  '/api/consumer',
+  '/api/vin',
   '/login',
   '/register',
+  '/demo',
+  '/request-demo',
+  '/pricing',
+  '/about',
+  '/features',
+  '/integrations',
+  '/contact',
+  '/security',
+  '/cars',
+  '/lease-deals',
+  '/lease-intelligence',
+  '/dealer',
   '/storefront',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/logout',
-  '/api/vin',
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1. Allow static files, Next.js internals, and public assets
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/_') ||
-    pathname.includes('.') ||
-    pathname === '/favicon.ico'
-  ) {
+  // 1. Allow root homepage '/' directly as public B2B marketing page
+  if (pathname === '/') {
     return NextResponse.next();
   }
 
-  // 2. Check for public paths
-  const isPublicPath = PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`)
-  );
+  // 2. Allow static files, Next.js internals, and public marketing / storefront / consumer paths
+  if (
+    pathname.includes('.') ||
+    PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+  ) {
+    // If authenticated user visits /login or /register, redirect to dashboard
+    const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (token && (pathname === '/login' || pathname === '/register')) {
+      try {
+        const { payload } = await jwtVerify(token, JWT_SECRET, { algorithms: ['HS256'] });
+        const orgSlug = (payload as any)?.organizationSlug || 'dashboard';
+        return NextResponse.redirect(new URL(orgSlug !== 'dashboard' ? `/d/${orgSlug}/dashboard` : '/dashboard', request.url));
+      } catch {
+        // Invalid token, allow login page
+      }
+    }
+    return NextResponse.next();
+  }
 
-  // 3. Verify session token from cookie
+  // 3. Verify session token for protected routes
   const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
   let isAuthenticated = false;
 
@@ -47,25 +75,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 4. If logged in and accessing auth pages (login/register), redirect to dashboard
-  if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
-  // 5. If root path '/', redirect to dashboard (or login if not authenticated)
-  if (pathname === '/') {
-    if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-  }
-
-  // 6. Protect private pages
-  if (!isAuthenticated && !isPublicPath) {
+  // 4. Protect private dealer routes
+  if (!isAuthenticated) {
     // For API requests, return 401 JSON
     if (pathname.startsWith('/api/')) {
-      // Allow demo fallback during local development testing if needed, else 401
+      // Allow demo fallback during local development testing if enabled
       if (process.env.ALLOW_DEMO_TENANT === 'true') {
         return NextResponse.next();
       }

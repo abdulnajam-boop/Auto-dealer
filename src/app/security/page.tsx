@@ -27,7 +27,7 @@ export default function SecurityPage() {
           Enterprise Security & Tenant Isolation
         </h1>
         <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-          DealerOS is engineered with cryptographic isolation, strict RBAC guards, and data privacy safeguards to protect your dealership's financial and customer records.
+          AutoAIdealership is engineered with cryptographic isolation, strict RBAC guards, and data privacy safeguards to protect your dealership's financial and customer records.
         </p>
       </section>
 
@@ -67,7 +67,7 @@ export default function SecurityPage() {
         <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 space-y-4 max-w-4xl mx-auto">
           <h3 className="text-xl font-bold text-white">Responsible Consumer Data & Consent Standards</h3>
           <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            DealerOS strictly respects consumer privacy. Guest leads captured via the public marketplace or dealer storefront are logged with explicit opt-in consent records (SMS/Email/Privacy Policy). Consumers have full self-service rights for data export, preference management, and GDPR/CCPA deletion requests.
+            AutoAIdealership strictly respects consumer privacy. Guest leads captured via the public marketplace or dealer storefront are logged with explicit opt-in consent records (SMS/Email/Privacy Policy). Consumers have full self-service rights for data export, preference management, and GDPR/CCPA deletion requests.
           </p>
         </div>
       </section>

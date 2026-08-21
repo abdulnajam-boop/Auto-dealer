@@ -347,7 +347,7 @@ function RequestDemoFormContent() {
                     <option value="Arbitrage & Sourcing">Opportunity sourcing, auction fee calculations & price comps</option>
                     <option value="Listing & Syndication">Manual listing descriptions and marketplace syndication</option>
                     <option value="F&I and Desking">Digital F&I desking, buyer contracts & paperless bill of sale</option>
-                    <option value="Consolidated Operations">Replacing fragmented software with all-in-one DealerOS</option>
+                    <option value="Consolidated Operations">Replacing fragmented software with all-in-one AutoAIdealership</option>
                   </select>
                 </div>
               </div>

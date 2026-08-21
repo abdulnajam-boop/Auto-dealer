@@ -84,5 +84,9 @@ export const Cpu: IconComponent = icons.Cpu;
 export const Smartphone: IconComponent = icons.Smartphone;
 export const Eye: IconComponent = icons.Eye;
 export const Briefcase: IconComponent = icons.Briefcase;
+export const Image: IconComponent = icons.Image;
+export const Wrench: IconComponent = icons.Wrench;
+export const BookOpen: IconComponent = icons.BookOpen;
+export const XCircle: IconComponent = icons.XCircle;
 
 export default icons;

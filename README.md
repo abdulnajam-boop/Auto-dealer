@@ -1,79 +1,77 @@
-# AutoAIdealership: AI-Powered Dealership Operating System
+# AutoAIdealership: Autonomous AI Dealership Operating System
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-teal.svg)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791.svg)](https://www.postgresql.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-36%20Passing-brightgreen.svg)](https://vitest.dev/)
-[![ESLint](https://img.shields.io/badge/ESLint-9%20Passing-green.svg)](https://eslint.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-Passing-brightgreen.svg)](https://vitest.dev/)
+[![ESLint](https://img.shields.io/badge/ESLint-Passing-green.svg)](https://eslint.org/)
 
-**AutoAIdealership** (`autoaidealership.com`) is an enterprise multi-tenant AI Dealership Operating System engineered for independent automotive dealerships. It unifies wholesale opportunity intelligence, 24/7 bounded AI buyer negotiation, VinAudit vehicle history normalization, digital F&I desking, owner storefront controls, and post-sale inventory delisting.
+**AutoAIdealership** (`autoaidealership.com`) is a production-grade multi-tenant AI Dealership Operating System engineered for modern independent automotive dealerships. It unifies wholesale vehicle intelligence, instant VIN decoding, automated multi-format copywriting, 1-click storefront publishing, lead capture, VIP test drive booking, 8-stage CRM sales pipeline, and post-sale inventory delisting with real-time profit accounting.
 
 *Tagline:* **Smarter Dealers. Better Deals.**
 
 ---
 
-## ⚡ Core Platform Capabilities
+## ⚡ Complete 19-Step Dealership Operating Workflow
 
-### 1. B2B Marketing & SaaS Presentation
-- **Corporate Homepage (`/`)**: Value proposition for independent lots, interactive video demo modal with fallback poster, modular feature previews, and transparent pricing previews.
-- **Request Demo & Trial Hub (`/demo`, `/request-demo`)**: Comprehensive qualification form (inventory size, staff count, DMS, main challenge, contact preference, preferred demo date/time) with in-memory IP rate limiting, honeypot spam protection, and database persistence.
-- **Transparent SaaS Pricing (`/pricing`)**: Tiered plans (**Starter** $249, **Pro** $499, **AI Pro** $799, **Enterprise** $1,499) with full entitlement matrices and annual billing toggles.
-- **About Us (`/about`)**: Independent dealer focus, margin protection, transparent data provenance, and bounded AI principles.
-- **Provider & Integration Directory (`/integrations`)**: Complete directory with status transparency (`LIVE`, `IMPLEMENTED`, `PARTNER REQUIRED`, `RESEARCH REQUIRED`, `MANUAL`).
+A dealership owner can execute the complete end-to-end lifecycle within the platform:
 
-### 2. Dealership Operations Portal (DealerOS)
-- **Executive Command Center (`/dashboard`)**: Daily AI morning briefings, inventory turnover velocity, profit margins, and aged lot alerts.
-- **Opportunity Intelligence (`/opportunities`)**: VIN decoding, wholesale comp calculations, transport and recon modeling, and 0–100 explainable Opportunity Scoring.
-- **24/7 Bounded AI Sales Concierge (`/messages`)**: Customer negotiation bot with strict invariant floor pricing ($P_{\text{min}}$) and human escalation triggers.
-- **Owner Storefront & Content Center (`/settings`)**: 11 independent toggles controlling public inventory feeds (Own Inventory, Lease Deals, Network Listings, Partner Listings) and conversion CTAs (CARFAX/History, Financing, Trade-In, Make Offer, Schedule Test Drive).
-- **VinAudit Subsystem (`src/lib/providers/vinaudit/`)**: Normalized vehicle specifications, Plate-to-VIN lookups, title brand records, market valuation comps, and tenant usage metering (`ProviderUsageLog`).
-- **F&I Desking & Paperless Documents (`/deals`, `/documents`)**: Contract structuring with state doc fees, sales tax, APR calculations, and printable Buyer's Orders.
-- **Multi-Tenant Storefront (`/dealer/[slug]`, `/storefront`)**: Dealer-branded showroom with real-time leads routed exclusively to the hosting organization.
+1. **Register** (`/register`): Set up dealer account with first/last name, phone, email, and dealership name.
+2. **Onboard** (`/onboarding`): 5-step interactive setup wizard (info, classification, inventory scope, branding, feature CTAs).
+3. **Log In** (`/login`): Secure session authentication with HTTP-only cookie tokens.
+4. **Command Center** (`/dashboard`): Real KPI analytics (active units, cost basis, potential gross profit, days in stock).
+5. **Configure Settings** (`/settings`): RBAC roles, storefront toggles (11 controls), and AI floor limits.
+6. **Add Vehicle** (`/inventory/new`): Intake lot inventory with instant 17-character VIN decode.
+7. **Decode VIN** (`/api/vin/decode`): NHTSA VPIC / VinAudit spec extraction with provenance tags.
+8. **Store Vehicle**: Save factory specifications, acquisition source, asking price, and minimum floor price.
+9. **Upload Photos** (`/inventory/[id]` -> *Photos*): Upload gallery photos, assign cover image, and run studio background removal.
+10. **Record Recon Expenses** (`/inventory/[id]` -> *Expenses*): Log parts, mechanical repair, and detailing; automatically updates cost basis.
+11. **Generate Listing** (`/listings`): AI copywriter creates Story narrative, Facebook Marketplace, Craigslist, Social, and SEO metadata.
+12. **1-Click Storefront Publishing**: Publish listing directly to the dealership's public showroom.
+13. **Public Showroom** (`/dealer/[slug]`): Customers browse inventory, specs, and certified vehicle history badges.
+14. **Customer Vehicle Detail** (`/dealer/[slug]/inventory/[id]`): Interactive customer tools (Test Drive, Make Offer, Financing, Trade-In).
+15. **Capture Lead** (`/api/consumer/leads`): Customer inquiry creates CRM lead with `stage: 'NEW'` and instant staff notification.
+16. **Schedule Test Drive** (`/api/consumer/appointments`): Customer books showroom appointment; lead moves to `APPOINTMENT`.
+17. **CRM Pipeline Operations** (`/leads`): 8-stage Kanban pipeline (`NEW` -> `CONTACTED` -> `QUALIFIED` -> `APPOINTMENT` -> `NEGOTIATING` -> `PENDING` -> `SOLD` -> `LOST`).
+18. **Appointments Desk** (`/appointments`): Confirm, reschedule, or complete customer test drives.
+19. **Mark Vehicle Sold**: Dealer logs sold price and date; system delists vehicle from storefront, archives listing, creates deal, and computes realized gross profit.
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏗️ Architecture & Database
+
+- **Database Engine**: PostgreSQL (`provider = "postgresql"`).
+- **Migration Strategy**: Version-controlled migrations (`prisma/migrations/`) executed via `npx prisma migrate deploy`.
+- **Tenant Isolation**: Row-level isolation on all queries scoped to `organizationId`.
+- **Security Vault**: AES-256-GCM encryption (`src/lib/security/credentials.ts`) for all external provider secrets.
 
 ```
 Auto-dealer/
 ├── .github/workflows/
-│   └── ci.yml                     # Automated CI pipeline (lint, typecheck, test, build)
+│   └── ci.yml                     # Automated CI pipeline with PostgreSQL service
 ├── prisma/
-│   ├── schema.prisma              # 27 relational models with multi-tenant isolation
-│   └── seed.ts                    # Realistic demo seed data (vehicles, leads, brandings)
+│   ├── schema.prisma              # Relational models with multi-tenant indexes
+│   └── migrations/                # Versioned PostgreSQL DDL migrations
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/                # Multi-tenant login & dealer registration
-│   │   ├── (dealer)/              # Dealer Operating System protected portal
-│   │   │   ├── dashboard/         # KPIs & AI briefings
-│   │   │   ├── opportunities/     # Sourcing intelligence & comp scoring
-│   │   │   ├── inventory/         # DMS vehicle management
-│   │   │   ├── listings/          # AI Listing Studio
-│   │   │   ├── messages/          # Unified inbox & AI sales agent
-│   │   │   ├── leads/             # CRM Kanban pipeline
-│   │   │   ├── deals/             # Digital F&I desking
+│   │   ├── (dealer)/              # Dealership Operating System portal
+│   │   │   ├── dashboard/         # Command center & KPI analytics
+│   │   │   ├── onboarding/        # 5-step Dealership Setup Wizard
+│   │   │   ├── inventory/         # DMS vehicle list & intake (/inventory/new)
+│   │   │   ├── listings/          # AI Listing Studio & multi-format copy
+│   │   │   ├── leads/             # 8-stage CRM Kanban pipeline
+│   │   │   ├── appointments/      # Test drive & showroom appointment desk
+│   │   │   ├── deals/             # Digital F&I desking & contracting
 │   │   │   ├── analytics/         # Turnover & margin reports
-│   │   │   └── settings/          # Owner Storefront Controls & Team RBAC
-│   │   ├── api/
-│   │   │   ├── demo/              # Rate-limited demo request endpoint
-│   │   │   ├── settings/storefront# Owner toggle update endpoint
-│   │   │   ├── vin/decode/        # NHTSA & VinAudit VIN decoder
-│   │   │   └── assistant/query/   # Natural language dealer copilot
-│   │   ├── demo/                  # Request Demo / Trial onboarding page
-│   │   ├── pricing/               # SaaS pricing & entitlement matrix
-│   │   ├── about/                 # About AutoAIdealership story
-│   │   ├── features/              # Audited truthful capability showcase
-│   │   └── integrations/          # Provider & auction status directory
-│   ├── components/
-│   │   ├── brand/                 # BrandLogo SVG vector components
-│   │   └── marketing/             # MarketingHeader & MarketingFooter
-│   └── lib/
-│       ├── providers/
-│       │   ├── vinaudit/          # Centralized VinAudit client & usage meter
-│       │   └── vehicle-history/   # Factory pattern for VinAudit, CARFAX, AutoCheck
-│       └── validation/            # Zod schemas (demo request, storefront settings)
-└── tests/                         # Vitest automated test suite (36 tests)
+│   │   │   └── settings/          # Storefront Controls & Team RBAC
+│   │   ├── dealer/[slug]/         # Public branded dealership showroom
+│   │   └── api/                   # Scoped REST API handlers
+│   ├── components/                # React UI components & BrandLogo
+│   └── lib/                       # Security vault, VIN decoders, and AI agents
+└── tests/                         # Vitest test suite verifying 19-step workflow
 ```
 
 ---
@@ -82,9 +80,9 @@ Auto-dealer/
 
 ### 1. Prerequisites
 - **Node.js**: v18.18.0 or later (v20+ recommended)
-- **npm**: v9.0.0 or later
+- **PostgreSQL**: v14 or later
 
-### 2. Quick Setup
+### 2. Setup & Execution
 ```bash
 # 1. Clone repository
 git clone https://github.com/abdulnajam-boop/Auto-dealer.git
@@ -95,47 +93,41 @@ npm install
 
 # 3. Configure environment
 cp .env.example .env
+# Edit .env and set your PostgreSQL DATABASE_URL, JWT_SECRET, and ENCRYPTION_SECRET
 
-# 4. Initialize Database
-npm run db:push
-npm run db:seed
+# 4. Generate Prisma Client & Run Migrations
+npx prisma generate
+npx prisma migrate deploy
 
 # 5. Start Development Server
 npm run dev
 ```
 
 Visit:
-- **AutoAIdealership Website**: `http://localhost:3000`
-- **Request Demo**: `http://localhost:3000/demo`
-- **Pricing**: `http://localhost:3000/pricing`
-- **Dealer Portal**: `http://localhost:3000/dashboard`
-- **Dealer Storefront**: `http://localhost:3000/dealer/apex-motors`
+- **AutoAIdealership Platform**: `http://localhost:3000`
+- **Dealer Registration**: `http://localhost:3000/register`
+- **Dealership Command Center**: `http://localhost:3000/dashboard`
+- **Public Showroom**: `http://localhost:3000/dealer/apex-motors`
 
 ---
 
-## 🧪 Quality & Test Verification
+## 🧪 Testing & Verification
 
 ```bash
-# 1. Code Quality & Linting (ESLint 9)
-npm run lint
-
-# 2. Strict TypeScript Verification
-npm run typecheck
-
-# 3. Unit, Integration & Multi-Tenant Isolation Tests (Vitest)
+# Run Vitest test suite
 npm test
 
-# 4. Production Next.js Bundle Compilation
+# Run TypeScript check
+npm run typecheck
+
+# Run Linter
+npm run lint
+
+# Compile production build
 npm run build
 ```
 
----
-
-## 🔒 Security & Tenant Sovereignty
-
-- **Row-Level Tenant Isolation**: All vehicle inventory, pricing margins, CRM customer records, and VinAudit usage logs are strictly scoped by `organizationId`.
-- **Server-Side API Key Protection**: External provider credentials (`VINAUDIT_API_KEY`, `CARFAX_API_KEY`, `GEMINI_API_KEY`) are kept strictly server-side and never leaked to client bundles.
-- **Hard Negotiation Invariant Floor**: AI sales counter-offers mathematically cannot breach dealer-configured minimum floor prices without manual human authorization.
+See [MVP_TESTING.md](file:///c:/Users/abdul/Documents/Auto-dealer/MVP_TESTING.md) for detailed manual testing procedures.
 
 ---
 

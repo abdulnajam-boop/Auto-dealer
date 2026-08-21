@@ -119,7 +119,7 @@ export function StorefrontFooter() {
       </div>
 
       <div className="border-t border-slate-900 py-6 text-center text-slate-500 text-[11px]">
-        &copy; 2026 Apex Auto Gallery. Powered by DealerOS Platform. All rights reserved.
+        &copy; 2026 Apex Auto Gallery. Powered by AutoAIdealership. All rights reserved.
       </div>
     </footer>
   );

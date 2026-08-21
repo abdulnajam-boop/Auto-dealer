@@ -87,7 +87,7 @@ export default async function InventoryPage({
 
         <div className="flex items-center gap-2.5">
           <Link
-            href="/opportunities"
+            href="/inventory/new"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-600/20 transition-all"
           >
             <Plus className="w-4 h-4" />

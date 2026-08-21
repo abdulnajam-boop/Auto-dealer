@@ -89,7 +89,7 @@ export default async function BrandedDealerStorefrontPage({
               href="/cars"
               className="text-xs text-slate-400 hover:text-white hidden md:block"
             >
-              DealerOS Marketplace →
+              AutoAIdealership Marketplace →
             </Link>
           </div>
         </div>
@@ -240,7 +240,7 @@ export default async function BrandedDealerStorefrontPage({
 
       {/* Footer */}
       <footer className="bg-slate-950 border-t border-slate-800 py-8 text-center text-xs text-slate-400 space-y-2">
-        <div>© {new Date().getFullYear()} {org.name}. Powered by DealerOS SaaS.</div>
+        <div>© {new Date().getFullYear()} {org.name}. Powered by AutoAIdealership.</div>
         <div className="text-[11px] text-slate-500">All prices subject to applicable state sales tax, title, and registration fees.</div>
       </footer>
     </div>
