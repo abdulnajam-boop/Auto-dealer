@@ -78,5 +78,11 @@ export const Trash2: IconComponent = icons.Trash2;
 export const Calculator: IconComponent = icons.Calculator;
 export const HelpCircle: IconComponent = icons.HelpCircle;
 export const Menu: IconComponent = icons.Menu;
+export const Layers: IconComponent = icons.Layers;
+export const Database: IconComponent = icons.Database;
+export const Cpu: IconComponent = icons.Cpu;
+export const Smartphone: IconComponent = icons.Smartphone;
+export const Eye: IconComponent = icons.Eye;
+export const Briefcase: IconComponent = icons.Briefcase;
 
 export default icons;

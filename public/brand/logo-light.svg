@@ -1,0 +1,14 @@
+<svg width="240" height="48" viewBox="0 0 240 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" transform="translate(4 4)" fill="url(#brand-gradient-light)"/>
+  <path d="M12 25.5L14.5 18.5C14.8 17.6 15.6 17 16.5 17H27.5C28.4 17 29.2 17.6 29.5 18.5L32 25.5M12 25.5H32M12 25.5V29C12 29.6 12.4 30 13 30H14.5C15.1 30 15.5 29.6 15.5 29V28H28.5V29C28.5 29.6 28.9 30 29.5 30H31C31.6 30 32 29.6 32 29V25.5M16 23H16.01M28 23H28.01" stroke="#020617" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="22" cy="22" r="1.5" fill="#020617"/>
+  <text x="54" y="28" fill="#0F172A" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="18" letter-spacing="-0.5">Auto<tspan fill="#059669">AI</tspan>dealership</text>
+  <text x="54" y="39" fill="#64748B" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="9" letter-spacing="0.2">AI DEALERSHIP OPERATING SYSTEM</text>
+  <defs>
+    <linearGradient id="brand-gradient-light" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#059669"/>
+      <stop offset="0.5" stop-color="#10B981"/>
+      <stop offset="1" stop-color="#2DD4BF"/>
+    </linearGradient>
+  </defs>
+</svg>

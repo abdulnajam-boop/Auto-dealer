@@ -1,67 +1,62 @@
-# DealerOS Product Requirements Document (PRD)
+# AutoAIdealership Product Requirements Document (PRD)
 
-## 1. Product Vision & Architecture
-DealerOS is the comprehensive automotive retail operating system serving both **B2B Dealerships** (operating platform, inventory management, auction sourcing, CRM, F&I desking, AI sales autonomy) and **B2C Vehicle Shoppers** (consumer marketplace, lease deal discovery, direct showroom scheduling, transparent out-the-door pricing).
-
-### Four Core Platform Experiences:
-1. **DealerOS Corporate Website** (`/`, `/features`, `/pricing`, `/integrations`, `/demo`, `/security`): SaaS marketing website showcasing value to dealership owners.
-2. **Dealership Management SaaS** (`/d/[dealerSlug]/dashboard`, `/inventory`, `/opportunities`, `/deals`, `/crm`, `/settings`): High-turn internal operating system with strict multi-tenant isolation and 6-role RBAC.
-3. **Branded Dealership Showrooms** (`/dealer/[dealerSlug]`): White-labeled public website powered by DealerOS with dealer branding, inventory, and scheduling.
-4. **Consumer Vehicle & Lease Marketplace** (`/cars`, `/cars/[id]`, `/lease-deals`): Nationwide shopper discovery engine for buying and leasing vehicles with transparent out-the-door pricing and explainable Deal Scores.
+## 1. Product Direction & Positioning
+- **Product Name:** `AutoAIdealership`
+- **Planned Primary Domain:** `autoaidealership.com`
+- **Tagline:** *"Smarter Dealers. Better Deals."*
+- **Product Positioning:** *"AI-Powered Dealership Operating System"*
+- **Target Audience:** Independent automotive dealers (1 to 250+ inventory units), general managers, sales teams, and dealership owners.
 
 ---
 
-## 2. Core Modules & Specifications
+## 2. Platform Experiences & Information Architecture
 
-### 2.1 Corporate SaaS Website (`/`, `/features`, `/pricing`, `/demo`, `/integrations`)
-- **Homepage Messaging**: "One platform to buy, manage, market and sell vehicles."
-- **Primary CTAs**: START FREE TRIAL (`/register`), BOOK DEMO (`/demo`), SIGN IN (`/login`).
-- **Pillars Covered**: Autonomous AI Sales Agent, Cross-Dealer Arbitrage Engine, Omnichannel Listing Studio, Auction Center, Lease Deal Discovery, F&I Desking, and Unified Inbox.
-- **Pricing Plans**: Starter ($249/mo), Professional ($499/mo), Enterprise ($1,299/mo) with 20% annual discount.
+### 2.1 Corporate B2B Website (`autoaidealership.com`)
+- **Primary Navigation Structure:**
+  - `Features` (`/features`): Live capabilities, bounded AI negotiation, opportunity scoring, and truthful feed roadmaps.
+  - `Pricing` (`/pricing`): Predictable SaaS tiers, entitlement limits, and monthly/annual toggles.
+  - `Request Demo` (`/demo`, `/request-demo`): Comprehensive B2B lead capture with demographic qualification.
+  - `About Us` (`/about`): Independent dealership mission, margin preservation, and bounded AI principles.
+  - `Integrations` (`/integrations`): Transparent provider status directory (`LIVE`, `IMPLEMENTED`, `PARTNER REQUIRED`, `RESEARCH REQUIRED`, `MANUAL`).
+  - `Sign In` (`/login`): Secure portal authentication.
+- **Navigation Constraint:**
+  - Marketing navigation does **NOT** promote retail consumer car shopping or lease browsing. All navigation is strictly oriented around B2B SaaS dealer acquisition.
 
-### 2.2 Dealership Onboarding & Path-Based Tenancy
-- **Self-Service Signup**: Collects dealership name, owner name, email, phone, physical lot address, and preferred dealership slug (`/dealer/[slug]` and `/d/[slug]/dashboard`).
-- **Automatic Provisioning**: Organization tenant, owner account, default location, F&I defaults ($499 doc fee, 6.25% state tax), default branding, and sample inventory.
-- **Path-Based Tenancy**: Strict database query isolation; prevents cross-dealer data leakage.
+### 2.2 Dealership Operating SaaS (DealerOS Portal)
+- **Executive Command Center (`/dashboard`)**: Daily AI morning briefings, inventory velocity desk, margin tracking, and aged lot alerts.
+- **Opportunity Intelligence (`/opportunities`, `/auctions`)**: Sourcing intelligence, 17-character NHTSA and VinAudit decoding, reconditioning & transport cost basis, and explainable 0–100 Opportunity Scores.
+- **24/7 Bounded AI Sales Concierge (`/messages`)**: Multi-channel lead messaging adhering strictly to dealer invariant minimum floor prices ($P_{\text{min}}$).
+- **Owner Storefront & Content Controls (`/settings`)**: 11 independent toggles controlling public inventory feeds (Own Inventory, Lease Deals, Network Listings, Partner Listings) and conversion CTAs.
+- **VinAudit Integration Subsystem (`src/lib/providers/vinaudit/`)**: Dedicated client providing VIN specifications, Plate-to-VIN lookup, title brand history, market valuation comps, and tenant usage metering.
+- **F&I Desking & Paperless Documents (`/deals`, `/documents`)**: Structuring with state doc fees, sales tax, APR calculations, and printable Buyer's Orders.
 
-### 2.3 Team & User Management (Settings -> Team & Users)
-- **Role Hierarchy**: `OWNER`, `ADMIN`, `MANAGER`, `SALES`, `INVENTORY`, `FINANCE`, `VIEWER`.
-- **Server-Side Enforcement**: Only `OWNER` and `ADMIN` can invite users, assign roles, or remove members. Cost basis and private margins are hidden from unauthorized roles.
-- **Audit Logging**: Every invitation, role change, price override, and deal execution is recorded with timestamps and user attribution.
+### 2.3 Dealer-Branded Storefront (`/dealer/[slug]`, `/storefront`)
+- **Public Showroom**: Displays active dealer inventory according to owner toggles.
+- **Lead Capture & Attribution**: Every test drive request, trade-in appraisal, financing pre-qualification, and chat inquiry is strictly routed to the hosting dealer's CRM.
 
-### 2.4 Consumer Automotive Marketplace (`/cars`, `/cars/[id]`)
-- **Platform-Wide Inventory Search**: Real-time filtering across Make, Model, Trim, Year, Price Range, Max Monthly Payment, Mileage, Fuel Type (EV / Hybrid / Gas), Drivetrain, and ZIP radius.
-- **Vehicle Cards**: High-res photo, condition grade, asking price, estimated monthly payment (60 mos @ 5.99%), dealer location, and 1-click test drive link.
-- **Vehicle Detail Page (`/cars/[id]`)**: Photo gallery, decoded NHTSA VIN specifications, dealer hours/contact, similar vehicles, and guest lead capture modals:
-  - `CHECK AVAILABILITY`
-  - `MESSAGE DEALER`
-  - `SCHEDULE TEST DRIVE`
-  - `MAKE OFFER`
-  - `START FINANCING`
-  - `VALUE TRADE-IN`
-- **Explicit Consent**: Captures explicit opt-in consent for SMS and email marketing with IP timestamps.
+---
 
-### 2.5 Public Lease Deal Discovery (`/lease-deals`)
-- **Lease Deal Discovery**: Aggregates OEM programs and verified dealer lease specials.
-- **True Effective Monthly Cost**: Computes exact cost amortization:
-  $$\text{Effective Monthly Cost} = \frac{\text{Monthly Payment} \times \text{Term} + \text{Due at Signing} + \text{Unavoidable Fees}}{\text{Term}}$$
-- **Explainable Lease Deal Score (0–100)**: Evaluates residual value percentage, money factor APR equivalent, manufacturer incentives, and upfront down payment.
-- **Interactive Lease Calculator**: Live input adjustment for MSRP, discount, incentives, residual %, money factor, term, due at signing, and state taxes.
+## 3. Subscription Tiers & Entitlement Matrix
 
-### 2.6 Opportunity Center & Cross-Dealer Arbitrage
-- **Multi-Source Sourcing Tabs**: `AUCTIONS`, `DEALER INVENTORY`, `PRIVATE MARKET`, `TRADE-INS`, `WHOLESALE`, `LEASE RETURNS`, `WATCHLIST`.
-- **Arbitrage Mathematics**:
-  $$\text{Expected Margin} = \text{Estimated Market Value} - (\text{Acquisition Price} + \text{Transport} + \text{Reconditioning} + \text{Fees})$$
-- **Data Provenance**: Every metric identifies whether it is `LIVE`, `PROVIDER_DATA`, `CALCULATED`, `DEALER_ENTERED`, `ESTIMATED`, or `SIMULATED`.
+| Entitlement | Starter ($249/mo) | Pro ($499/mo) | AI Pro ($799/mo) | Enterprise ($1,499/mo) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Active Inventory Limit** | 30 Vehicles | 100 Vehicles | 250 Vehicles | Unlimited |
+| **Authorized Staff Seats** | 3 Seats (RBAC) | 8 Seats (RBAC) | 15 Seats (RBAC) | Unlimited |
+| **Bounded AI Sales Agent** | 1,000 actions / mo | 5,000 actions / mo | Unlimited | Custom Tuned |
+| **VinAudit History Reports**| 25 / mo | 100 / mo | 300 / mo | Volume Tier |
+| **Opportunity Intelligence**| Standard | Full Arbitrage | Full Arbitrage + Comps | Full Arbitrage |
+| **Background Removal Studio**| Standard | Included | Included | Included |
+| **Plate-to-VIN Scanner** | Standard | Standard | Included | Included |
+| **Storefront Lease Deals** | Configurable (Off) | Configurable (Off) | Configurable (On) | Configurable (On) |
+| **Multi-Rooftop Management**| — | — | — | Included |
 
-### 2.7 Master Listing Studio & Multi-Marketplace Hub
-- **Single Master Listing**: AI Listing Studio creates tailored copy for Storefront, Facebook Marketplace, Autotrader, Cars.com, and Craigslist.
-- **Automated Post-Sale Delisting**: When a deal closes (`vehicle.status = SOLD`), the system triggers instant delisting across all connected channels.
+---
 
-### 2.8 Autonomous AI Sales Agent & Unified Inbox
-- **Bounded Negotiation Engine**: AI negotiates strictly within dealer-approved price boundaries: $\text{Asking Price} \ge \text{Counter Price} \ge \text{Min Floor Price}$.
-- **Omnichannel Inbox**: Unifies customer conversations across Storefront Web Chat, SMS via Twilio, and Facebook Messenger into a single desk.
+## 4. Vehicle Data & History Provider Architecture
 
-### 2.9 F&I Deal Desk & Legal Documents
-- **Complete Desking Calculations**: Vehicle price, doc fee, state sales tax, title/registration, trade-in allowance, trade-in payoff, down payment, financed amount, APR, term, and monthly payment.
-- **Document Generation**: Print-ready Buyer's Order and Bill of Sale contracts.
+1. **Provider Factory (`src/lib/providers/vehicle-history/factory.ts`)**:
+   - `VinAuditHistoryProvider`: Standard provider querying factory build data, title brand records, and market comps.
+   - `CarfaxHistoryProvider`: Truthfully returns `status: 'UNAUTHORIZED'` when commercial credentials are not provided.
+   - `AutoCheckHistoryProvider`: Experian commercial provider interface.
+2. **Usage Tracking (`ProviderUsageLog`)**:
+   - Every API invocation tracks `organizationId`, `provider`, `endpoint`, `vin`, `status`, and `costEstimateCents`.

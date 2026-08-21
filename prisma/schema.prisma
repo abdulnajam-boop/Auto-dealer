@@ -48,6 +48,8 @@ model Organization {
   subscriptions         Subscription[]
   usageMeters           UsageMeter[]
   vehicleInterests      VehicleInterest[]
+  vehicleHistoryRecords VehicleHistoryRecord[]
+  providerUsageLogs     ProviderUsageLog[]
 
   @@map("organizations")
 }
@@ -154,6 +156,7 @@ model Vehicle {
   leads               Lead[]
   appointments        Appointment[]
   deals               Deal[]
+  historyRecords      VehicleHistoryRecord[]
 
   @@index([organizationId, status])
   @@index([organizationId, vin])
@@ -604,6 +607,21 @@ model DealerBranding {
   socialLinksJson   String?  // e.g. {"facebook": "...", "instagram": "..."}
   policiesJson      String?  // Warranty, return, documentation policies
   customDomain      String?  @unique
+
+  // Storefront Content Source & Feature Controls
+  showOwnInventory             Boolean  @default(true)
+  showLeaseDeals               Boolean  @default(false)
+  showNetworkInventory         Boolean  @default(false)
+  showPartnerListings          Boolean  @default(false)
+  showCarfaxCta                Boolean  @default(true)
+  showFinancingCta             Boolean  @default(true)
+  showTradeInCta               Boolean  @default(true)
+  showMakeOffer                Boolean  @default(true)
+  showScheduleTestDrive        Boolean  @default(true)
+  showContactDealer            Boolean  @default(true)
+  showVehicleRecommendations   Boolean  @default(true)
+  preferredHistoryProvider     String   @default("VINAUDIT") // VINAUDIT, CARFAX, AUTOCHECK
+
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -854,4 +872,80 @@ model UsageMeter {
   @@unique([organizationId, metricName, periodDate])
   @@map("usage_meters")
 }
+
+model DemoRequest {
+  id                     String   @id @default(cuid())
+  firstName              String
+  lastName               String
+  dealershipName         String
+  businessEmail          String
+  phone                  String
+  state                  String
+  inventorySize          String?  // "1-25", "26-75", "76-150", "150+"
+  employeeCount          String?  // "1-5", "6-15", "16+"
+  currentDms             String?  // "Frazer", "DealerCenter", "DealerSocket", "vAuto", "None", "Other"
+  mainChallenge          String?  // "Acquisition", "AI Sales", "Multi-listing", "Desking", "Other"
+  preferredContactMethod String   @default("EMAIL") // EMAIL, PHONE, SMS
+  preferredDemoDate      String?
+  preferredDemoTime      String?
+  status                 String   @default("NEW") // NEW, CONTACTED, SCHEDULED, COMPLETED, ARCHIVED
+  notes                  String?
+  ipAddress              String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([businessEmail, status])
+  @@index([createdAt])
+  @@map("demo_requests")
+}
+
+model VehicleHistoryRecord {
+  id                   String   @id @default(cuid())
+  organizationId       String?
+  vehicleId            String?
+  vin                  String
+  provider             String   @default("VINAUDIT") // VINAUDIT, CARFAX, AUTOCHECK, MANUAL
+  reportId             String?
+  titleStatus          String?  // CLEAN, SALVAGE, JUNK, REBUILT, FLOOD, LEMON
+  accidentCount        Int      @default(0)
+  hasAccident          Boolean  @default(false)
+  salvageRecord        Boolean  @default(false)
+  junkRecord           Boolean  @default(false)
+  odometerRollback     Boolean  @default(false)
+  lastReportedOdometer Int?
+  ownerCount           Int      @default(1)
+  serviceRecordsCount  Int      @default(0)
+  recallCount          Int      @default(0)
+  reportUrl            String?
+  rawReportJson        String?
+  retrievedAt          DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle?      @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([vin])
+  @@index([organizationId, vin])
+  @@map("vehicle_history_records")
+}
+
+model ProviderUsageLog {
+  id                String   @id @default(cuid())
+  organizationId    String?
+  provider          String   // VINAUDIT, CARFAX, NHTSA, OPENAI
+  endpoint          String
+  vin               String?
+  status            String   @default("SUCCESS") // SUCCESS, ERROR, CACHE_HIT
+  costEstimateCents Int      @default(0)
+  metadataJson      String?
+  createdAt         DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, provider])
+  @@index([provider, endpoint, createdAt])
+  @@map("provider_usage_logs")
+}
+
 

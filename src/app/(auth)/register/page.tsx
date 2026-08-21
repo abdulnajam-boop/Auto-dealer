@@ -58,7 +58,7 @@ export default function RegisterPage() {
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold tracking-tight text-white">Create Dealership Account</h1>
         <p className="text-sm text-slate-400">
-          Onboard your dealership into DealerOS with full autonomous AI capabilities
+          Onboard your dealership into AutoAIdealership with full autonomous AI capabilities
         </p>
       </div>
 

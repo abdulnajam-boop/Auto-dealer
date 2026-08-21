@@ -1,68 +1,79 @@
-# DealerOS: AI-Powered Dealer Operating System
+# AutoAIdealership: AI-Powered Dealership Operating System
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-teal.svg)](https://www.prisma.io/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/Vitest-Passing-brightgreen.svg)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-36%20Passing-brightgreen.svg)](https://vitest.dev/)
+[![ESLint](https://img.shields.io/badge/ESLint-9%20Passing-green.svg)](https://eslint.org/)
 
-An end-to-end, production-ready AI-powered SaaS Operating System engineered specifically for independent used-car dealerships. DealerOS consolidates sourcing opportunity evaluation, inventory intake, reconditioning cost accounting, grounded AI listing generation, omni-channel marketplace syndication, unified lead messaging, autonomous AI negotiation guardrails, F&I deal structuring, automated post-sale delisting, and executive analytics into a unified multi-tenant platform.
+**AutoAIdealership** (`autoaidealership.com`) is an enterprise multi-tenant AI Dealership Operating System engineered for independent automotive dealerships. It unifies wholesale opportunity intelligence, 24/7 bounded AI buyer negotiation, VinAudit vehicle history normalization, digital F&I desking, owner storefront controls, and post-sale inventory delisting.
 
----
-
-## ⚡ Key Features & Capabilities
-
-- **Executive Command Center (`/dashboard`)**: Daily AI dealer briefings, active inventory desk, financial KPIs, and aged unit alerts.
-- **Vehicle Intelligence Sourcing (`/opportunities` & `/auctions`)**: Live NHTSA VPIC 17-char VIN decoding, MMR comp valuation, Target Acquisition & Max Bid calculations, 0–100 Opportunity Scoring, and 1-click won auction intake.
-- **DMS Inventory & 360 Detail View (`/inventory` & `/inventory/[id]`)**: Lifecycle tracking from `SOURCING` to `SOLD`, photo galleries, reconditioning expense ledgers, and profit margin analysis.
-- **AI Listing Studio (`/listings`)**: Grounded multi-format copywriter producing narrative stories, vehicle highlights, Facebook Marketplace copy, Craigslist templates, social media captions with hashtags, and SEO tags.
-- **Marketplace Adapter Hub (`/marketplaces`)**: 1-click "Publish Everywhere" syndication supporting Storefront, Facebook Marketplace, Craigslist, eBay Motors, Autotrader, Cars.com, and CarGurus.
-- **Unified Inbox & Autonomous AI Sales Agent (`/messages`)**: Omni-channel chat manager enforcing strict dealer negotiation boundaries ($P_{\text{min}}$ invariant price floors).
-- **CRM Pipeline & VIP Appointments (`/leads` & `/appointments`)**: Kanban pipeline tracking customer journeys and scheduling test drives and trade-in appraisals.
-- **F&I Deal Desk & Documents Vault (`/deals` & `/documents`)**: Deal structuring (taxes, doc fee, down payment, APR rate, monthly payment), printable state Bills of Sale / Buyer's Orders, and 1-click "Deliver & Complete Sale" that triggers automated post-sale delisting.
-- **Executive Analytics & AI Copilot (`/analytics` & `/assistant`)**: Realized gross profit calculation, inventory turnover velocity, profit by sourcing channel, and conversational natural language database inspection.
-- **Public Customer Storefront (`/storefront`)**: Modern consumer-facing showroom featuring searchable inventory, vehicle detail pages (`/storefront/inventory/[id]`), financing pre-approval, trade-in equity estimator, and live AI Sales Concierge (`Alex`).
+*Tagline:* **Smarter Dealers. Better Deals.**
 
 ---
 
-## 🏗️ System Architecture
+## ⚡ Core Platform Capabilities
+
+### 1. B2B Marketing & SaaS Presentation
+- **Corporate Homepage (`/`)**: Value proposition for independent lots, interactive video demo modal with fallback poster, modular feature previews, and transparent pricing previews.
+- **Request Demo & Trial Hub (`/demo`, `/request-demo`)**: Comprehensive qualification form (inventory size, staff count, DMS, main challenge, contact preference, preferred demo date/time) with in-memory IP rate limiting, honeypot spam protection, and database persistence.
+- **Transparent SaaS Pricing (`/pricing`)**: Tiered plans (**Starter** $249, **Pro** $499, **AI Pro** $799, **Enterprise** $1,499) with full entitlement matrices and annual billing toggles.
+- **About Us (`/about`)**: Independent dealer focus, margin protection, transparent data provenance, and bounded AI principles.
+- **Provider & Integration Directory (`/integrations`)**: Complete directory with status transparency (`LIVE`, `IMPLEMENTED`, `PARTNER REQUIRED`, `RESEARCH REQUIRED`, `MANUAL`).
+
+### 2. Dealership Operations Portal (DealerOS)
+- **Executive Command Center (`/dashboard`)**: Daily AI morning briefings, inventory turnover velocity, profit margins, and aged lot alerts.
+- **Opportunity Intelligence (`/opportunities`)**: VIN decoding, wholesale comp calculations, transport and recon modeling, and 0–100 explainable Opportunity Scoring.
+- **24/7 Bounded AI Sales Concierge (`/messages`)**: Customer negotiation bot with strict invariant floor pricing ($P_{\text{min}}$) and human escalation triggers.
+- **Owner Storefront & Content Center (`/settings`)**: 11 independent toggles controlling public inventory feeds (Own Inventory, Lease Deals, Network Listings, Partner Listings) and conversion CTAs (CARFAX/History, Financing, Trade-In, Make Offer, Schedule Test Drive).
+- **VinAudit Subsystem (`src/lib/providers/vinaudit/`)**: Normalized vehicle specifications, Plate-to-VIN lookups, title brand records, market valuation comps, and tenant usage metering (`ProviderUsageLog`).
+- **F&I Desking & Paperless Documents (`/deals`, `/documents`)**: Contract structuring with state doc fees, sales tax, APR calculations, and printable Buyer's Orders.
+- **Multi-Tenant Storefront (`/dealer/[slug]`, `/storefront`)**: Dealer-branded showroom with real-time leads routed exclusively to the hosting organization.
+
+---
+
+## 🏗️ Architecture Overview
 
 ```
-dealer-os/
-├── docker-compose.yml          # Optional local PostgreSQL container
+Auto-dealer/
+├── .github/workflows/
+│   └── ci.yml                     # Automated CI pipeline (lint, typecheck, test, build)
 ├── prisma/
-│   ├── schema.prisma           # 24 relational models (multi-tenant)
-│   └── seed.ts                 # Realistic demo data (22+ vehicles, leads, deals)
+│   ├── schema.prisma              # 27 relational models with multi-tenant isolation
+│   └── seed.ts                    # Realistic demo seed data (vehicles, leads, brandings)
 ├── src/
 │   ├── app/
-│   │   ├── (dealer)/           # Dealer Operating System protected portal
-│   │   │   ├── dashboard/      # Executive KPIs & AI briefings
-│   │   │   ├── opportunities/  # Sourcing intelligence & VIN decoder
-│   │   │   ├── auctions/       # Live auction lane bidding tracker
-│   │   │   ├── inventory/      # DMS vehicle catalog & 360 details
-│   │   │   ├── listings/       # AI Listing Studio
-│   │   │   ├── marketplaces/   # Syndication orchestrator hub
-│   │   │   ├── messages/       # Unified inbox & AI sales agent
-│   │   │   ├── leads/          # CRM Kanban pipeline
-│   │   │   ├── appointments/   # Scheduled test drives
-│   │   │   ├── deals/          # F&I deal desk & closing
-│   │   │   ├── expenses/       # Reconditioning cost ledger
-│   │   │   ├── analytics/      # Financial turnover & channel ROI
-│   │   │   ├── assistant/      # Conversational executive AI copilot
-│   │   │   ├── documents/      # Printable Bill of Sale vault
-│   │   │   ├── automations/    # Reactive event rules & webhooks
-│   │   │   └── settings/       # Tenant profiles & AI guardrails
-│   │   ├── storefront/         # Public customer showroom & portal
-│   │   └── api/                # REST & AI backend route handlers
-│   ├── components/             # Reusable UI widgets & modals
-│   └── lib/                    # Core business logic & AI engines
-│       ├── ai/                 # Gemini API & deterministic fallback engines
-│       ├── valuation/          # Vehicle intelligence & scoring formulas
-│       ├── vin/                # NHTSA VPIC decoder
-│       ├── marketplaces/       # Adapter pattern implementations
-│       ├── automations/        # Event bus & lifecycle triggers
-│       └── tenant.ts           # Multi-tenant context resolution
-└── tests/                      # Automated Vitest test suites
+│   │   ├── (auth)/                # Multi-tenant login & dealer registration
+│   │   ├── (dealer)/              # Dealer Operating System protected portal
+│   │   │   ├── dashboard/         # KPIs & AI briefings
+│   │   │   ├── opportunities/     # Sourcing intelligence & comp scoring
+│   │   │   ├── inventory/         # DMS vehicle management
+│   │   │   ├── listings/          # AI Listing Studio
+│   │   │   ├── messages/          # Unified inbox & AI sales agent
+│   │   │   ├── leads/             # CRM Kanban pipeline
+│   │   │   ├── deals/             # Digital F&I desking
+│   │   │   ├── analytics/         # Turnover & margin reports
+│   │   │   └── settings/          # Owner Storefront Controls & Team RBAC
+│   │   ├── api/
+│   │   │   ├── demo/              # Rate-limited demo request endpoint
+│   │   │   ├── settings/storefront# Owner toggle update endpoint
+│   │   │   ├── vin/decode/        # NHTSA & VinAudit VIN decoder
+│   │   │   └── assistant/query/   # Natural language dealer copilot
+│   │   ├── demo/                  # Request Demo / Trial onboarding page
+│   │   ├── pricing/               # SaaS pricing & entitlement matrix
+│   │   ├── about/                 # About AutoAIdealership story
+│   │   ├── features/              # Audited truthful capability showcase
+│   │   └── integrations/          # Provider & auction status directory
+│   ├── components/
+│   │   ├── brand/                 # BrandLogo SVG vector components
+│   │   └── marketing/             # MarketingHeader & MarketingFooter
+│   └── lib/
+│       ├── providers/
+│       │   ├── vinaudit/          # Centralized VinAudit client & usage meter
+│       │   └── vehicle-history/   # Factory pattern for VinAudit, CARFAX, AutoCheck
+│       └── validation/            # Zod schemas (demo request, storefront settings)
+└── tests/                         # Vitest automated test suite (36 tests)
 ```
 
 ---
@@ -72,84 +83,61 @@ dealer-os/
 ### 1. Prerequisites
 - **Node.js**: v18.18.0 or later (v20+ recommended)
 - **npm**: v9.0.0 or later
-- **Docker** *(Optional)*: For local PostgreSQL container
 
-### 2. Installation
+### 2. Quick Setup
 ```bash
-# Clone the repository
+# 1. Clone repository
 git clone https://github.com/abdulnajam-boop/Auto-dealer.git
 cd Auto-dealer
 
-# Install dependencies
+# 2. Install dependencies
 npm install
-```
 
-### 3. Environment Configuration
-Create a `.env` file from `.env.example`:
-```bash
+# 3. Configure environment
 cp .env.example .env
-```
 
-Default configuration (zero-config SQLite):
-```env
-DATABASE_URL="file:./dev.db"
-GEMINI_API_KEY="" # Optional: fallback deterministic local engine is active when unset
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-NEXT_PUBLIC_APP_NAME="DealerOS"
-DEFAULT_ORG_ID="org_apex_motors"
-ENABLE_MOCK_MARKETPLACES="true"
-```
-
-*(Optional PostgreSQL Database)*:
-```bash
-docker compose up -d
-# Update .env: DATABASE_URL="postgresql://dealeros:dealeros_dev_password@localhost:5432/dealeros_db?schema=public"
-```
-
-### 4. Database Setup & Seeding
-```bash
-# Generate Prisma Client and push schema to database
+# 4. Initialize Database
 npm run db:push
-
-# Seed realistic dealership demo data (22+ vehicles, leads, deals, expenses)
 npm run db:seed
-```
 
-### 5. Running the Application
-```bash
-# Start Next.js development server
+# 5. Start Development Server
 npm run dev
 ```
 
-Open your browser to:
-- **Dealer Operating System**: `http://localhost:3000/dashboard`
-- **Public Customer Showroom**: `http://localhost:3000/storefront`
+Visit:
+- **AutoAIdealership Website**: `http://localhost:3000`
+- **Request Demo**: `http://localhost:3000/demo`
+- **Pricing**: `http://localhost:3000/pricing`
+- **Dealer Portal**: `http://localhost:3000/dashboard`
+- **Dealer Storefront**: `http://localhost:3000/dealer/apex-motors`
 
 ---
 
-## 🧪 Testing & Verification
+## 🧪 Quality & Test Verification
 
 ```bash
-# Run unit, integration, and full lifecycle E2E tests
-npm test
+# 1. Code Quality & Linting (ESLint 9)
+npm run lint
 
-# Run TypeScript typecheck
+# 2. Strict TypeScript Verification
 npm run typecheck
 
-# Build for production
+# 3. Unit, Integration & Multi-Tenant Isolation Tests (Vitest)
+npm test
+
+# 4. Production Next.js Bundle Compilation
 npm run build
 ```
 
 ---
 
-## 🔒 Security & Privacy
+## 🔒 Security & Tenant Sovereignty
 
-- **Tenant Isolation**: Every database query is strictly filtered by `organizationId`.
-- **Server-Side AI Abstraction**: External AI models (Gemini) are exclusively invoked through backend route handlers. API keys are never exposed to the client.
-- **Hard Negotiation Invariant Floor**: The AI sales negotiator strictly enforces $P_{\text{min}}$ price boundaries and cannot commit to below-floor pricing without explicit manager approval.
-- **Audit Logging**: All automated AI operations and deal state mutations are recorded in immutable audit ledgers.
+- **Row-Level Tenant Isolation**: All vehicle inventory, pricing margins, CRM customer records, and VinAudit usage logs are strictly scoped by `organizationId`.
+- **Server-Side API Key Protection**: External provider credentials (`VINAUDIT_API_KEY`, `CARFAX_API_KEY`, `GEMINI_API_KEY`) are kept strictly server-side and never leaked to client bundles.
+- **Hard Negotiation Invariant Floor**: AI sales counter-offers mathematically cannot breach dealer-configured minimum floor prices without manual human authorization.
 
 ---
 
-## 📄 License
-Private & Confidential. All rights reserved.
+## 📄 License & Intellectual Property
+© AutoAIdealership (`autoaidealership.com`). All rights reserved.

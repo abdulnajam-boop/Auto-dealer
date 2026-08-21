@@ -1,83 +1,99 @@
-# DealerOS Architecture Design Document
+# AutoAIdealership Architecture Design Document
 
-## 1. System Overview
-DealerOS is an autonomous, AI-augmented Dealer Operating System & Consumer Automotive Platform engineered for independent and franchise dealerships, as well as retail car shoppers.
+## 1. System Overview & B2B Positioning
+**AutoAIdealership** (`autoaidealership.com`) is an enterprise-grade, multi-tenant AI Dealership Operating System engineered for independent automotive dealerships, lot managers, and sales teams.
 
 ```
 +--------------------------------------------------------------------------------------------------------------------+
 |                                                  CLIENT SURFACES                                                   |
-|  +--------------------+  +----------------------+  +--------------------+  +---------------------+  +------------+ |
-|  | Corporate SaaS Site|  | DealerOS Management  |  | Branded Showroom   |  | Consumer Marketplace|  | Lease Deals| |
-|  | (dealeros.com / /) |  | (/d/[slug]/dashboard)|  | (/dealer/[slug])   |  | (/cars, /cars/[id]) |  |(/lease-deals)|
-|  +---------+----------+  +----------+-----------+  +---------+----------+  +----------+----------+  +-----+------+ |
-+------------|------------------------|------------------------|------------------------|-------------------|--------+
-             +------------------------+------------------------+------------------------+-------------------+
-                                                               |
-+--------------------------------------------------------------v-----------------------------------------------------+
+|  +---------------------------+  +-------------------------------+  +--------------------------------------------+  |
+|  | Corporate SaaS Site       |  | DealerOS Management           |  | Dealer-Branded Storefront                  |  |
+|  | (autoaidealership.com /)  |  | (/d/[slug]/dashboard)         |  | (/dealer/[slug])                           |  |
+|  | - Features, Pricing, Demo |  | - Arbitrage, CRM, Desking     |  | - Owner-Controlled Inventory & CTAs        |  |
+|  | - Transparent Integrations|  | - VinAudit & History Provider |  | - Bounded AI Buyer Interaction             |  |
+|  +-------------+-------------+  +---------------+---------------+  +--------------------+-----------------------+  |
++----------------|--------------------------------|---------------------------------------|--------------------------+
+                 +--------------------------------+---------------------------------------+
+                                                  |
++-------------------------------------------------v------------------------------------------------------------------+
 |                                           API & SECURITY GATEWAY                                                   |
 |  +--------------------------------------------------------------------------------------------------------------+  |
-|  | - Next.js Edge Middleware & JWT Session Guard (HTTP-only signed cookies via jose)                             |  |
-|  | - Path-Based & Subdomain Multi-Tenant Context Resolver (Organization, Membership, and 6-Role RBAC Matrix)    |  |
-|  | - First-Party Consumer Intent & Lead Capture Engine (Explicit SMS/Email Consent Logging)                    |  |
+|  | - Next.js App Router Middleware & Cryptographically Signed Session Tokens (jose JWT)                         |  |
+|  | - Organization Multi-Tenant Context Resolver (Row-level organizationId filtering on all database operations)  |  |
+|  | - Anti-Spam & Rate-Limiting Engine for Public Inquiries & Demo Requests (/api/demo)                          |  |
 |  +--------------------------------------------------------------------------------------------------------------+  |
-|  | Core Domain Services:                                                                                        |  |
-|  | - Vehicle Intelligence & Arbitrage Engine      - Autonomous AI Sales Agent Engine (Bounded Negotiations)     |  |
-|  | - Omnichannel Master Listing Studio & Delist   - Mathematical Lease Calculator & Explainable Deal Scorer     |  |
-|  | - Real-Time Auction Ingestion & Run Lists      - CRM, Unified Inbox & Digital F&I Desking                    |  |
-|  | - Team & User Management with RBAC Guards      - Provider Cost Metering & Caching Layer                      |  |
+|  | Core Domain Subsystems:                                                                                      |  |
+|  | - Sourcing Intelligence & Arbitrage Engine       - Autonomous Bounded AI Sales Agent (Price Floors)          |  |
+|  | - VinAudit Integration & Usage Metering          - Normalized Vehicle History Provider Factory (VinAudit,CF) |  |
+|  | - Owner Storefront Content Control Hub (11 CTAs) - Digital F&I Desking & Paperless Buyer's Order Vault       |  |
 |  +--------------------------------------------------------------------------------------------------------------+  |
-+--------------------------------------------------------------+-----------------------------------------------------+
-                                                               |
-+--------------------------------------------------------------v-----------------------------------------------------+
++-------------------------------------------------+------------------------------------------------------------------+
+                                                  |
++-------------------------------------------------v------------------------------------------------------------------+
 |                                            DATA & INTEGRATION LAYER                                                |
 |  +---------------------------+  +--------------------------+  +-------------------------------------------------+  |
-|  | Relational Database       |  | Automotive Data Feeds    |  | Marketplace & Communication Adapters            |  |
-|  | - PostgreSQL (Prod)      |  | - NHTSA VPIC (Live API)  |  | - Branded Storefront (Direct DB)                |  |
-|  | - SQLite (Dev / Test)     |  | - VinAudit (NMVTIS Comps)|  | - Meta Automotive Catalog (Feed / Manual Kit)   |  |
-|  | - Prisma ORM Model Layer  |  | - CARFAX / AutoCheck     |  | - Autotrader / Cars.com (Syndication Feed)      |  |
-|  | - Immutable Audit Logs    |  | - Manheim / ACV Auctions |  | - Twilio 2-Way SMS & Live Web Chat              |  |
+|  | Relational Database       |  | Vehicle Data Providers   |  | Marketplace & Syndication Adapters              |  |
+|  | - PostgreSQL (Production) |  | - NHTSA VPIC (Live API)  |  | - Dealer Storefront (Direct Scoped DB)          |  |
+|  | - SQLite (Dev / Test)     |  | - VinAudit API Suite     |  | - Meta Catalog XML Feed (Configurable)          |  |
+|  | - Prisma ORM Model Layer  |  | - CARFAX & AutoCheck     |  | - Autotrader / Classifieds Syndication Feed     |  |
+|  | - ProviderUsageLog Meter  |  | - Auction Watchlists     |  | - Real-Time CRM Webhooks & Calendar Sync        |  |
 |  +---------------------------+  +--------------------------+  +-------------------------------------------------+  |
 +--------------------------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Multi-Tenancy & Path-Based Routing Architecture
-1. **Path-Based Tenancy**:
-   - `/d/[dealerSlug]/dashboard` -> Dealership operating workspace.
-   - `/dealer/[dealerSlug]` -> Public branded showroom powered by DealerOS.
-   - Domain architecture supports future subdomains (`[dealerSlug].dealeros.com`) and custom CNAME domains (`cars.[dealership].com`) without changing core business logic.
-2. **Strict Server-Side Isolation**: Every database query executes with `where: { organizationId: tenant.organizationId }`. Users can only access dealerships where they have an active `OrganizationMember` record.
-3. **6-Role Granular RBAC**:
-   - `OWNER`: Full administrative access, billing, team management, and pricing control.
-   - `ADMIN`: Full access and user management.
+## 2. Multi-Tenancy & Data Sovereignty Architecture
+
+1. **Strict Database Isolation**:
+   - Every operational query is explicitly scoped: `where: { organizationId: currentTenant.id }`.
+   - Dedicated test suite (`tests/tenant-isolation-v2.test.ts`) verifies zero cross-tenant data leakage across inventory, leads, pricing strategies, and API cost meters.
+
+2. **Role-Based Access Control (RBAC)**:
+   - `OWNER`: Full administrative control, billing, storefront toggles, and user management.
+   - `ADMIN`: User management and full operational features.
    - `MANAGER`: Desking approvals, inventory intake, and lead assignment.
-   - `SALES`: CRM, active leads, web chat, and listing copy creation.
-   - `INVENTORY`: Vehicle acquisitions, recon ledger, and auction watchlist.
-   - `FINANCE`: F&I contracts, loans, buyer orders, and bill of sale documents.
+   - `SALES`: CRM pipeline, customer conversations, and AI listing creation.
+   - `INVENTORY`: Vehicle acquisitions, reconditioning expense ledgers, and auction watchlists.
+   - `FINANCE`: F&I calculations, loan desking, and paperless Buyer's Orders.
    - `VIEWER`: Read-only reporting.
 
----
-
-## 3. Mathematical Rule Engines & Data Provenance
-
-### 3.1 Vehicle Opportunity & Arbitrage Engine
-Calculates net acquisition viability across auctions, dealer networks, and private listings:
-$$\text{Expected Margin} = \text{Estimated Market Value} - (\text{Acquisition Price} + \text{Transport} + \text{Reconditioning} + \text{Fees})$$
-$$\text{Opportunity Score} = w_1 \cdot \text{Margin} + w_2 \cdot \text{Demand} + w_3 \cdot \text{DaysToSell} + w_4 \cdot \text{ConditionRisk} + w_5 \cdot \text{TitleRisk}$$
-
-Every numerical calculation tags its provenance: `LIVE`, `PROVIDER_DATA`, `CALCULATED`, `DEALER_ENTERED`, `ESTIMATED`, or `SIMULATED`.
-
-### 3.2 Lease Calculator & Explainable Deal Score
-$$\text{Residual Value} = \text{MSRP} \times \text{Residual Percentage}$$
-$$\text{Depreciation Portion} = \frac{\text{Adjusted Cap Cost} - \text{Residual Value}}{\text{Term}}$$
-$$\text{Finance Charge} = (\text{Adjusted Cap Cost} + \text{Residual Value}) \times \text{Money Factor}$$
-$$\text{Base Payment} = \text{Depreciation Portion} + \text{Finance Charge}$$
-$$\text{Effective Monthly Cost} = \frac{\text{Monthly Payment} \times \text{Term} + \text{Due at Signing} + \text{Unavoidable Fees}}{\text{Term}}$$
+3. **Owner Storefront & Content Controls**:
+   - Each dealership owner independently configures 11 boolean toggles:
+     - `showOwnInventory` (default: ON)
+     - `showLeaseDeals` (default: OFF)
+     - `showNetworkInventory` (default: OFF)
+     - `showPartnerListings` (default: OFF)
+     - `showCarfaxCta` (default: ON)
+     - `showFinancingCta` (default: ON)
+     - `showTradeInCta` (default: ON)
+     - `showMakeOffer` (default: ON)
+     - `showScheduleTestDrive` (default: ON)
+     - `showContactDealer` (default: ON)
+     - `showVehicleRecommendations` (default: ON)
+     - `preferredHistoryProvider` (default: `VINAUDIT`)
 
 ---
 
-## 4. Consumer Intent Engine & Lead Capture
-1. **Guest Lead Capture**: Shoppers submit inquiries without forced upfront account creation.
-2. **Explicit Consent Ledger**: Captures `MARKETING_SMS`, `MARKETING_EMAIL`, and `TERMS_OF_SERVICE` consent with IP addresses and user agents.
-3. **First-Party Intent Events**: Tracks behavioral milestones (`vehicle.viewed`, `vehicle.saved`, `test_drive.requested`, `offer.submitted`) to calculate real-time lead urgency in the dealership CRM.
+## 3. Vehicle Data & VinAudit Provider Architecture
+
+- **Centralized Client (`src/lib/providers/vinaudit/client.ts`)**:
+  - Secure, server-side-only execution using `VINAUDIT_API_KEY`.
+  - Comprehensive service methods: `decodeVin`, `getPlateToVin`, `getVehicleHistory`, `getMarketValue`, `getMarketListings`, `getOwnershipCost`, `getVehicleImages`, `removeBackground`.
+  - Built-in deterministic mock adapter when `VINAUDIT_API_KEY` is not present, allowing zero-friction local development without fabricated external claims.
+- **Provider Usage Metering (`src/lib/providers/vinaudit/usageMeter.ts`)**:
+  - Every API invocation records an immutable log in `ProviderUsageLog` (tracking tenant, endpoint, VIN, cost estimate, and status) and increments monthly aggregation in `UsageMeter`.
+- **Vehicle History Factory (`src/lib/providers/vehicle-history/factory.ts`)**:
+  - Normalized interface `VehicleHistoryProvider` and report contract `NormalizedVehicleHistoryReport`.
+  - Supports `VinAuditHistoryProvider`, `CarfaxHistoryProvider`, and `AutoCheckHistoryProvider`.
+  - Truthful degradation: Unconfigured providers return `status: 'UNAUTHORIZED'` with zero fabricated records.
+
+---
+
+## 4. B2B Demo Request & Anti-Spam Architecture
+
+- **Input Validation (`src/lib/validation/demo-request.ts`)**: Server-side Zod schema enforcing valid business email formats, phone numbers, state selections, and operational demographic metadata.
+- **Anti-Spam Defenses (`src/app/api/demo/route.ts`)**:
+  - Hidden bot honeypot field (`website_hp`) rejecting automated submissions.
+  - In-memory client IP rate limiter (maximum 5 requests per 10-minute window per IP).
+- **Persistent Storage**: Validated requests are committed to the `DemoRequest` database model with tracking status (`PENDING`, `CONTACTED`, `SCHEDULED`, `QUALIFIED`, `CLOSED`).
